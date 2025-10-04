@@ -11,9 +11,9 @@ export interface LocationResult {
 // Reverse geocoding - get city name from coordinates
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
   try {
-    // Using OpenStreetMap Nominatim API (free)
+    // Using our proxy API to avoid CORS issues
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+      `/api/geocode?lat=${lat}&lng=${lng}`
     )
     
     if (!response.ok) {
@@ -47,8 +47,9 @@ export async function searchLocations(query: string): Promise<LocationResult[]> 
   try {
     if (query.length < 2) return []
     
+    // Using our proxy API to avoid CORS issues
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=10`
+      `/api/geocode?q=${encodeURIComponent(query)}`
     )
     
     if (!response.ok) {

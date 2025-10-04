@@ -8,7 +8,7 @@ import { useAppMode, type AppMode } from "./ModeToggle";
 // Navigation items for Emergency Mode
 const emergencyNavItems = [
   { name: "Home", href: "/dashboard", icon: Home, color: "#53B175" },
-  { name: "Map", href: "/route", icon: Map, color: "#53B175" },
+  { name: "Map", href: "/forecast/map", icon: Map, color: "#53B175" },
   { name: "SOS", href: "/sos", icon: AlertTriangle, color: "#c1121f" },
   { name: "Friends", href: "/friends", icon: Users, color: "#53B175" },
   { name: "Chat", href: "/chatgpt", icon: Bot, color: "#53B175" },

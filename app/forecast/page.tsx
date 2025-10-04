@@ -33,6 +33,7 @@ import { useAppStore } from "@/lib/store/useAppStore";
 import { getCurrentLocationWithName, reverseGeocode } from "@/lib/geocoding";
 import { useWeatherInsightsStore, WeatherInsight } from "@/lib/store/useWeatherInsightsStore";
 import LocationSearch from "@/components/LocationSearch";
+import AlertTimerSettings from "@/components/AlertTimerSettings";
 import Link from "next/link";
 
 interface WeatherData {
@@ -345,7 +346,7 @@ export default function ForecastPage() {
             </Link>
 
             <Link href="/forecast/export" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-green-500 to-green-600" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600" />
               <div className="absolute inset-0 bg-black/20" />
               <div className="absolute left-4 bottom-3 text-white">
                 <div className="flex items-center gap-2 mb-1">
@@ -353,6 +354,18 @@ export default function ForecastPage() {
                   <div className="text-sm font-semibold">Export Data</div>
                 </div>
                 <div className="text-xs opacity-90">Download weather datasets</div>
+              </div>
+            </Link>
+
+            <Link href="/route" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600" />
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="absolute left-4 bottom-3 text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin className="h-4 w-4" />
+                  <div className="text-sm font-semibold">Smart Route</div>
+                </div>
+                <div className="text-xs opacity-90">Plan weather-aware routes</div>
               </div>
             </Link>
           </div>
@@ -437,6 +450,11 @@ export default function ForecastPage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Alert Timer Settings */}
+        <div className="mb-6">
+          <AlertTimerSettings />
         </div>
 
         {/* AI Weather Insights */}
