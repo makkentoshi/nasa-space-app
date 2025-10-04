@@ -1,26 +1,165 @@
 @import "tailwindcss";
 
+/* resQ Design System - iOS-inspired minimalist design */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Forecast Mode (Blue) - Default */
+  --forecast-primary: #007AFF;
+  --forecast-primary-dark: #0051D5;
+  --forecast-background: #F2F2F7;
+  
+  /* Emergency Mode (Green) */
+  --emergency-primary: #34C759;
+  --emergency-primary-dark: #248A3D;
+  --emergency-background: #F2F7F2;
+  --emergency-alert: #FF3B30;
+  
+  /* Active mode colors */
+  --mode-primary: var(--forecast-primary);
+  --mode-background: var(--forecast-background);
+  
+  /* Typography */
+  --font-primary: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  
+  /* Layout */
+  --bottom-bar-height: 88px;
+  --top-bar-height: 60px;
+  
+  /* Animation */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-primary);
+  background: var(--mode-background);
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color var(--transition-slow) ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar - iOS style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Bold typography utilities */
+.text-heavy {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.text-bold {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* iOS-like card */
+.ios-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.ios-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Mode-specific styles */
+.mode-forecast {
+  --mode-primary: var(--forecast-primary);
+  --mode-background: var(--forecast-background);
+}
+
+.mode-emergency {
+  --mode-primary: var(--emergency-primary);
+  --mode-background: var(--emergency-background);
+}
+
+/* Bottom safe area for iOS */
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 300ms ease;
+}
+
+.animate-slide-up {
+  animation: slideUp 300ms ease;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
 }
