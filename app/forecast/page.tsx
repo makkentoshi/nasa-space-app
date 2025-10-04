@@ -65,8 +65,8 @@ export default function ForecastPage() {
     try {
       const result = await getCurrentLocationWithName();
       if (result) {
-        setLocation(result.lat, result.lng);
-        setLocationName(result.locationName);
+        setLocation({ lat: result.lat, lng: result.lng }, result.accuracy, result.name);
+        setLocationName(result.name);
         setTracking(true);
       }
     } catch (error: any) {
@@ -499,10 +499,11 @@ export default function ForecastPage() {
         {/* Location Search Modal */}
         {showLocationSearch && (
           <LocationSearch
+            isOpen={showLocationSearch}
             onClose={() => setShowLocationSearch(false)}
-            onLocationSelect={(lat, lng, name) => {
-              setLocation(lat, lng);
-              setLocationName(name);
+            onLocationSelect={(location) => {
+              setLocation({ lat: location.lat, lng: location.lng }, undefined, location.name);
+              setLocationName(location.name);
               setShowLocationSearch(false);
             }}
           />
