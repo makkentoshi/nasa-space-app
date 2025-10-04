@@ -1,6 +1,6 @@
 "use client";
 import { useUser } from '@clerk/nextjs';
-import React, { useEffect, useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppShell } from "@/components/layout/AppShell";
 import { Home, AlertTriangle, MapPin, MessageCircle, Users } from "lucide-react";
+import { SiLighthouse } from "react-icons/si";
 import { Waves, Flame, Earth, Wind } from "lucide-react";
 import { useAppStore } from "@/lib/store/useAppStore";
 import Link from "next/link";
@@ -31,27 +32,18 @@ export default function DashboardPage() {
   const location = useAppStore((state) => state.location.location);
   const isInEmergency = useAppStore((state) => state.isInEmergency);
 
-  const [nearbyAlerts, setNearbyAlerts] = useState<DashboardAlert[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: nearbyAlerts, isLoading } = useQuery({
+    queryKey: ["alerts", "nearby", location],
+    queryFn: async () => {
+      if (!location) return [];
 
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      if (!location) return;
-      setIsLoading(true);
-      try {
-        const response = await fetch(`/api/alerts?lat=${location.lat}&lng=${location.lng}&radius=50000`);
-        const json = await response.json();
-        if (mounted) setNearbyAlerts(json);
-      } catch (e) {
-        if (mounted) setNearbyAlerts([]);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    }
-    load();
-    return () => { mounted = false };
-  }, [location]);
+      const response = await fetch(
+        `/api/alerts?lat=${location.lat}&lng=${location.lng}&radius=50000`
+      );
+      return response.json();
+    },
+    enabled: !!location,
+  });
 
   const getSeverityColor = (severity: string) => {
     switch (severity.toLowerCase()) {
@@ -72,7 +64,8 @@ export default function DashboardPage() {
         {/* Header - Compact version for emergency situations */}
         <div className="rounded-2xl shadow-sm bg-white py-4 px-4 flex flex-col items-center mb-4">
           <div className="flex items-center gap-3 mb-2">
-            <Home className="h-8 w-8 text-[#53B175]" />
+            <SiLighthouse className="h-8 w-8 text-[#53B175]" />
+            
           </div>
             <h1 className="text-xl font-bold text-gray-900">resQ</h1>
           <p className="text-sm text-gray-500 text-center max-w-xs">Emergency alerts & assistance</p>
@@ -262,9 +255,9 @@ export default function DashboardPage() {
                 <div key={i} className="h-16 bg-[#F2F3F2] rounded-xl animate-pulse" />
               ))}
             </div>
-          ) : Array.isArray(nearbyAlerts) && nearbyAlerts.length > 0 ? (
+          ) : nearbyAlerts?.length > 0 ? (
             <div className="space-y-4">
-              {nearbyAlerts!.slice(0, 3).map((alert: DashboardAlert) => (
+              {nearbyAlerts.slice(0, 3).map((alert: DashboardAlert) => (
                 <div key={alert.id} className="flex items-start justify-between p-4 border rounded-xl bg-[#FCFCFC]">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
