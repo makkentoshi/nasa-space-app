@@ -49,6 +49,52 @@ export default function ForecastMapPage() {
     return () => clearInterval(interval)
   }, [])
 
+  // Calculate comfort index helper
+  const calcComfort = useCallback(async (loc: { lat: number; lng: number }) => {
+    try {
+      setComfortIndex(null)
+      const response = await fetch(`/api/weather?lat=${loc.lat}&lng=${loc.lng}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (!data.current) {
+          setComfortIndex(5)
+          return
+        }
+
+        const temp = data.current.temperature ?? 20
+        const precipitation = data.current.precipitation ?? 0
+        const humidity = data.current.humidity ?? 50
+        const windSpeed = data.current.windSpeed ?? 0
+
+        // Simple comfort calculation
+        let comfort = 7 // default moderate
+        
+        // Temperature factor (-20 to 40°C range)
+        if (temp >= -5 && temp <= 25) comfort = 8
+        else if (temp < -10 || temp > 30) comfort = 4
+        
+        // Precipitation penalty
+        if (precipitation > 50) comfort -= 2
+        else if (precipitation > 20) comfort -= 1
+        
+        // Wind penalty
+        if (windSpeed > 40) comfort -= 2
+        else if (windSpeed > 20) comfort -= 1
+        
+        // Humidity factor
+        if (humidity < 20 || humidity > 80) comfort -= 1
+
+        setComfortIndex(Math.max(1, Math.min(10, comfort)))
+      } else {
+        setComfortIndex(5)
+      }
+    } catch (error) {
+      console.error('Comfort calculation failed:', error)
+      setComfortIndex(5)
+    }
+  }, [])
+
   // Update selected location when user location changes
   useEffect(() => {
     if (location) {
@@ -58,8 +104,10 @@ export default function ForecastMapPage() {
       } else {
         reverseGeocode({ lat: location.lat, lng: location.lng })
       }
+      // Calculate comfort index for new location
+      calcComfort({ lat: location.lat, lng: location.lng })
     }
-  }, [location, locationName])
+  }, [location, locationName, calcComfort])
 
   const reverseGeocode = async (coords: { lat: number; lng: number }) => {
     try {
@@ -89,7 +137,7 @@ export default function ForecastMapPage() {
     setSelectedLocation(location)
     await reverseGeocode(location)
     fetchAIAdvice(location)
-    await calculateComfortIndex(location)
+    await calcComfort(location)
   }
 
   const fetchAIAdvice = async (location: { lat: number; lng: number }) => {

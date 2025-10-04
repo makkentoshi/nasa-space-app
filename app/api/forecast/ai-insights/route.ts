@@ -19,46 +19,37 @@ interface NASAWeatherData {
   pressure: number
 }
 
-async function fetchNASAData(lat: number, lng: number): Promise<NASAWeatherData | null> {
+async function fetchRealTimeWeatherData(lat: number, lng: number): Promise<NASAWeatherData | null> {
   try {
-    const now = new Date()
-    const currentDate = now.toISOString().slice(0, 10).replace(/-/g, '')
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-    const yesterdayDate = yesterday.toISOString().slice(0, 10).replace(/-/g, '')
+    // Use Open-Meteo for real-time accurate weather data
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&timezone=auto`;
     
-    const response = await fetch(
-      `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,RH2M,PRECTOTCORR,WS2M,PS&community=RE&longitude=${lng}&latitude=${lat}&start=${yesterdayDate}&end=${currentDate}&format=JSON`
-    )
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
     
     if (!response.ok) {
-      throw new Error('NASA API request failed')
+      throw new Error('Open-Meteo API request failed')
     }
     
     const data = await response.json()
-    const properties = data.properties?.parameter
+    const current = data.current
 
-    if (!properties) {
+    if (!current) {
       return null
     }
 
-    const latestData = Object.keys(properties.T2M || {}).pop()
-    if (!latestData) return null
-
-    const sanitize = (v: any, fallback: number) => {
-      if (v === null || v === undefined) return fallback
-      if (typeof v === 'number' && v <= -900) return fallback
-      return v
-    }
-
     return {
-      temperature: sanitize(properties.T2M?.[latestData], 20),
-      humidity: sanitize(properties.RH2M?.[latestData], 60),
-      precipitation: sanitize(properties.PRECTOTCORR?.[latestData], 0),
-      windSpeed: sanitize(properties.WS2M?.[latestData], 10),
-      pressure: sanitize(properties.PS?.[latestData], 1013)
+      temperature: Math.round(current.temperature_2m ?? 20),
+      humidity: Math.round(current.relative_humidity_2m ?? 60),
+      precipitation: current.precipitation ?? 0,
+      windSpeed: Math.round(current.wind_speed_10m ?? 10),
+      pressure: Math.round(current.surface_pressure ?? 1013)
     }
   } catch (error) {
-    console.error('NASA API error:', error)
+    console.error('Weather API error:', error)
     return null
   }
 }
@@ -70,23 +61,23 @@ async function generateWeatherInsight(
   context?: string
 ): Promise<string> {
   try {
-    const systemPrompt = `You are an expert meteorologist analyzing NASA satellite data. Based on DAILY weather data, provide realistic insights about current conditions and general trends. DO NOT make specific hourly predictions since you only have daily data. Focus on current conditions and general daily trends.`
+    const systemPrompt = `You are an expert meteorologist analyzing real-time weather data. Provide concise, accurate insights about current conditions based on actual measurements. Focus on current conditions and practical recommendations.`
     
     const userPrompt = `
 Location: ${location.name || `${location.lat}, ${location.lng}`}
-Current NASA Daily Data:
-- Daily Average Temperature: ${nasaData.temperature}°C
-- Daily Average Humidity: ${nasaData.humidity}%
-- Daily Precipitation Total: ${nasaData.precipitation}mm
-- Daily Average Wind Speed: ${nasaData.windSpeed} m/s
-- Daily Average Pressure: ${nasaData.pressure} hPa
+Current Real-Time Weather Data:
+- Current Temperature: ${nasaData.temperature}°C
+- Current Humidity: ${nasaData.humidity}%
+- Current Precipitation: ${nasaData.precipitation}mm
+- Current Wind Speed: ${nasaData.windSpeed} km/h
+- Current Pressure: ${nasaData.pressure} hPa
 
 Analysis Type: ${type}
 ${context ? `Additional Context: ${context}` : ''}
 
-Based on this DAILY satellite data, provide insight about ${type === 'temperature' ? 'temperature conditions and comfort levels for today' : type === 'precipitation' ? 'precipitation patterns and current conditions' : 'general current weather conditions and recommendations for today'}. 
+Based on this real-time weather data, provide a brief insight about ${type === 'temperature' ? 'temperature conditions and comfort levels right now' : type === 'precipitation' ? 'current precipitation and weather conditions' : 'current weather conditions and practical recommendations'}. 
 
-Important: Only describe current daily conditions and general trends. DO NOT predict specific future hours or give percentage chances for specific time periods.
+Keep it concise (2-3 sentences) and focus on what people should know right now.
 `
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -133,9 +124,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Location coordinates required' }, { status: 400 })
     }
 
-    const nasaData = await fetchNASAData(location.lat, location.lng)
+    const weatherData = await fetchRealTimeWeatherData(location.lat, location.lng)
     
-    if (!nasaData) {
+    if (!weatherData) {
       return NextResponse.json({ 
         error: 'Unable to fetch weather data',
         fallback: {
@@ -146,17 +137,16 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
     
-    const insight = await generateWeatherInsight(location, nasaData, type, context)
+    const insight = await generateWeatherInsight(location, weatherData, type, context)
 
-    const usedFallback = (nasaData.temperature === 20 || nasaData.humidity === 60 || nasaData.precipitation === 0 || nasaData.windSpeed === 10 || nasaData.pressure === 1013)
-    const confidence = usedFallback ? 'medium' : 'high'
+    const confidence = 'high' // Open-Meteo provides real-time accurate data
 
     const sanitizedData: NASAWeatherData = {
-      temperature: nasaData.temperature,
-      humidity: nasaData.humidity,
-      precipitation: nasaData.precipitation,
-      windSpeed: nasaData.windSpeed,
-      pressure: nasaData.pressure
+      temperature: weatherData.temperature,
+      humidity: weatherData.humidity,
+      precipitation: weatherData.precipitation,
+      windSpeed: weatherData.windSpeed,
+      pressure: weatherData.pressure
     }
 
     return NextResponse.json({

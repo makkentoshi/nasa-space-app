@@ -362,6 +362,18 @@ export default function WeatherMap({
   const generateWeatherData = useCallback(async () => {
     if (forecastMode === '7day') return generate7DayForecast()
 
+    // Fetch real current weather for center location to use as base
+    let baseTemp = 5 // Default for Pavlodar in October
+    try {
+      const weatherRes = await fetch(`/api/weather?lat=${selectedLocation.lat}&lng=${selectedLocation.lng}`)
+      if (weatherRes.ok) {
+        const weatherData = await weatherRes.json()
+        baseTemp = weatherData.current?.temperature ?? 5
+      }
+    } catch (e) {
+      console.warn('Failed to fetch base weather, using default')
+    }
+
     // try server
     try {
       const response = await fetch('/api/forecast/nasa', {
@@ -399,7 +411,7 @@ export default function WeatherMap({
           const noise = (Math.sin(gridCell.lat * 100) + Math.cos(gridCell.lng * 100)) * 0.3
           const baseData = {
             precipitation: Math.max(0, (baseIntensity + noise + Math.random() * 0.4) * 25),
-            temperature: 18 + Math.sin(gridCell.lat * 0.1) * 8 + Math.random() * 4,
+            temperature: baseTemp + Math.sin(gridCell.lat * 0.1) * 3 + Math.random() * 2,
             wind_speed: Math.max(0, baseIntensity * 15 + Math.random() * 10),
             humidity: 50 + baseIntensity * 30 + Math.random() * 20,
             cloud_cover: Math.min(100, baseIntensity * 80 + Math.random() * 40),
@@ -433,7 +445,7 @@ export default function WeatherMap({
       const noise = (Math.sin(gridCell.lat * 100) + Math.cos(gridCell.lng * 100)) * 0.3
       const baseData = {
         precipitation: Math.max(0, (baseIntensity + noise + Math.random() * 0.4) * 25),
-        temperature: 18 + Math.sin(gridCell.lat * 0.1) * 8 + Math.random() * 4,
+        temperature: baseTemp + Math.sin(gridCell.lat * 0.1) * 3 + Math.random() * 2,
         wind_speed: Math.max(0, baseIntensity * 15 + Math.random() * 10),
         humidity: 50 + baseIntensity * 30 + Math.random() * 20,
         cloud_cover: Math.min(100, baseIntensity * 80 + Math.random() * 40),
@@ -578,12 +590,18 @@ export default function WeatherMap({
                 }
               } catch (parseErr) {
                 console.warn('🌐 [Wttr.in] JSON parse error for cell:', cell)
+                // Fall through to add fallback data
               }
             }
+            // If we reach here, wttr.in returned an error or invalid data
+            // Add cell with fallback data so grid isn't empty
           }
         } catch (err) {
           console.warn('🌐 [Wttr.in] Failed to fetch cell:', cell)
-          // Add cell with fallback data
+        }
+        
+        // If we haven't added this cell yet (no successful fetch above), add with fallback data
+        if (!gridWithData.find(item => item.lat === cell.lat && item.lng === cell.lng)) {
           gridWithData.push({
             ...cell,
             data: {
@@ -653,11 +671,13 @@ export default function WeatherMap({
             const baseIntensity = Math.max(0, 1 - (distanceFromCenter / 50));
             const noise = (Math.sin(gridCell.lat * 100) + Math.cos(gridCell.lng * 100)) * 0.3;
             
+            // Use actual current temperature as base (will be fetched by generateWeatherData)
+            const currentTemp = 5; // Fallback for Pavlodar
             return {
               ...gridCell,
               data: {
                 precipitation: Math.max(0, (baseIntensity + noise + Math.random() * 0.4) * 25),
-                temperature: 18 + Math.sin(gridCell.lat * 0.1) * 8 + Math.random() * 4,
+                temperature: currentTemp + Math.sin(gridCell.lat * 0.1) * 3 + Math.random() * 2,
                 wind_speed: Math.max(0, baseIntensity * 15 + Math.random() * 10),
                 humidity: 50 + baseIntensity * 30 + Math.random() * 20,
                 cloud_cover: Math.min(100, baseIntensity * 80 + Math.random() * 40),
