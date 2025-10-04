@@ -19,13 +19,18 @@ import { toast } from 'sonner'
 export default function ForecastMapPage() {
   const router = useRouter()
   const { user } = useUser()
-  const [selectedLocation, setSelectedLocation] = useState({ lat: 51.1694, lng: 71.4491 })
-  const [locationName, setLocationName] = useState('Astana, Kazakhstan')
+  const location = useAppStore(state => state.location.location)
+  const locationName = useAppStore(state => state.location.locationName)
+  
+  // Initialize with user's current location if available, otherwise default to Astana
+  const [selectedLocation, setSelectedLocation] = useState(
+    location ? { lat: location.lat, lng: location.lng } : { lat: 51.1694, lng: 71.4491 }
+  )
+  const [localLocationName, setLocalLocationName] = useState(locationName || 'Astana, Kazakhstan')
   const [localTime, setLocalTime] = useState<string>('')
   const [isTrackingEnabled, setIsTrackingEnabled] = useState(false)
   const [comfortIndex, setComfortIndex] = useState<number | null>(null)
   const [aiAdvice, setAiAdvice] = useState('')
-  const location = useAppStore(state => state.location.location)
 
   useEffect(() => {
     const savedTracking = localStorage.getItem('weatherTrackingEnabled')
@@ -44,17 +49,22 @@ export default function ForecastMapPage() {
     return () => clearInterval(interval)
   }, [])
 
+  // Update selected location when user location changes
   useEffect(() => {
     if (location) {
       setSelectedLocation({ lat: location.lat, lng: location.lng })
-      reverseGeocode({ lat: location.lat, lng: location.lng })
+      if (locationName) {
+        setLocalLocationName(locationName)
+      } else {
+        reverseGeocode({ lat: location.lat, lng: location.lng })
+      }
     }
-  }, [location])
+  }, [location, locationName])
 
   const reverseGeocode = async (coords: { lat: number; lng: number }) => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=10&addressdetails=1`
+        `/api/geocode?lat=${coords.lat}&lng=${coords.lng}`
       )
       if (response.ok) {
         const data = await response.json()
@@ -62,16 +72,16 @@ export default function ForecastMapPage() {
           const city = data.address.city || data.address.town || data.address.village || data.address.state
           const country = data.address.country
           const name = city ? `${city}, ${country}` : `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
-          setLocationName(name)
+          setLocalLocationName(name)
         } else {
-          setLocationName(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`)
+          setLocalLocationName(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`)
         }
       } else {
-        setLocationName(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`)
+        setLocalLocationName(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`)
       }
     } catch (error) {
       console.error('Reverse geocoding failed:', error)
-      setLocationName(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`)
+      setLocalLocationName(`${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`)
     }
   }
 
@@ -284,7 +294,7 @@ export default function ForecastMapPage() {
                   <MapPin className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-900">Current Location</span>
                 </div>
-                <div className="text-lg font-semibold text-blue-800">{locationName}</div>
+                <div className="text-lg font-semibold text-blue-800">{localLocationName}</div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

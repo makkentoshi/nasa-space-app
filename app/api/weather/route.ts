@@ -52,29 +52,11 @@ function generateMockWeather(lat: number, lng: number): WeatherResponse {
   };
 }
 
-// Fetch from NASA POWER API (production)
-async function fetchNASAWeather(lat: number, lng: number): Promise<WeatherResponse | null> {
+// Fetch from Open-Meteo API (real-time, accurate, free)
+async function fetchOpenMeteoWeather(lat: number, lng: number): Promise<WeatherResponse | null> {
   try {
-    // NASA POWER API endpoint
-    // Note: This is for historical/climatology data, may not provide real-time current weather
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    
-    const startDate = yesterday.toISOString().split('T')[0].replace(/-/g, '');
-    const endDate = today.toISOString().split('T')[0].replace(/-/g, '');
-    
-    const params = new URLSearchParams({
-      parameters: 'T2M,RH2M,WS10M,PRECTOTCORR',
-      community: 'RE',
-      longitude: lng.toString(),
-      latitude: lat.toString(),
-      start: startDate,
-      end: endDate,
-      format: 'JSON'
-    });
-    
-    const url = `https://power.larc.nasa.gov/api/temporal/daily/point?${params}`;
+    // Open-Meteo API - free, no API key needed, real-time data
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=auto`;
     
     const response = await fetch(url, {
       headers: {
@@ -83,54 +65,50 @@ async function fetchNASAWeather(lat: number, lng: number): Promise<WeatherRespon
     });
     
     if (!response.ok) {
-      console.error('NASA POWER API error:', response.status);
+      console.error('Open-Meteo API error:', response.status);
       return null;
     }
     
     const data = await response.json();
-    const properties = data.properties?.parameter;
+    const current = data.current;
     
-    if (!properties) {
+    if (!current) {
       return null;
     }
     
-    // Get most recent data
-    const dates = Object.keys(properties.T2M || {}).sort();
-    const latestDate = dates[dates.length - 1];
+    const temp = current.temperature_2m ?? 20;
+    const humidity = current.relative_humidity_2m ?? 60;
+    const windSpeed = current.wind_speed_10m ?? 10;
+    const precipitation = current.precipitation ?? 0;
+    const weatherCode = current.weather_code ?? 0;
+    const feelsLike = current.apparent_temperature ?? temp;
     
-    if (!latestDate) {
-      return null;
-    }
-    
-    const temp = properties.T2M?.[latestDate] ?? 20;
-    const humidity = properties.RH2M?.[latestDate] ?? 60;
-    const windSpeed = properties.WS10M?.[latestDate] ?? 10;
-    const precipitation = properties.PRECTOTCORR?.[latestDate] ?? 0;
-    
-    // Determine condition based on precipitation and temperature
+    // Map WMO weather codes to conditions
+    // https://open-meteo.com/en/docs
     let condition = 'sunny';
-    if (precipitation > 10) {
-      condition = 'rainy';
-    } else if (precipitation > 2) {
-      condition = 'cloudy';
-    } else if (temp < 10) {
-      condition = 'partly_cloudy';
-    }
+    if (weatherCode === 0) condition = 'sunny';
+    else if (weatherCode <= 3) condition = 'partly_cloudy';
+    else if (weatherCode <= 48) condition = 'cloudy';
+    else if (weatherCode <= 67 || weatherCode <= 77) condition = 'rainy';
+    else if (weatherCode <= 99) condition = 'rainy';
+    
+    // Calculate precipitation probability (0-100%)
+    const precipProbability = precipitation > 0 ? Math.min(100, precipitation * 10) : 0;
     
     return {
       current: {
         temperature: Math.round(temp),
         humidity: Math.round(humidity),
-        windSpeed: Math.round(windSpeed * 3.6), // Convert m/s to km/h
-        precipitation: Math.round((precipitation / 10) * 100), // Convert to percentage estimate
+        windSpeed: Math.round(windSpeed),
+        precipitation: Math.round(precipProbability),
         condition,
-        feelsLike: Math.round(temp - (windSpeed * 0.5)),
+        feelsLike: Math.round(feelsLike),
       },
       location: { lat, lng },
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('NASA POWER API fetch error:', error);
+    console.error('Open-Meteo API fetch error:', error);
     return null;
   }
 }
@@ -160,10 +138,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Try NASA POWER API first
-    let weatherData = await fetchNASAWeather(lat, lng);
+    // Try Open-Meteo API first (real-time, accurate)
+    let weatherData = await fetchOpenMeteoWeather(lat, lng);
     
-    // Fall back to mock data if NASA API fails
+    // Fall back to mock data if API fails
     if (!weatherData) {
       console.log('Falling back to mock weather data');
       weatherData = generateMockWeather(lat, lng);

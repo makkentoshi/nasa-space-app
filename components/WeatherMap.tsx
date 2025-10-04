@@ -488,7 +488,14 @@ export default function WeatherMap({
       const response = await fetch(`https://wttr.in/${location}?format=j1`)
       if (!response.ok) throw new Error('wttr.in fetch failed')
       
-      const wttrData = await response.json()
+      const text = await response.text()
+      
+      // Check if response is valid JSON (wttr.in sometimes returns error messages)
+      if (text.startsWith('Unknown') || text.startsWith('ERROR')) {
+        throw new Error('wttr.in returned error message')
+      }
+      
+      const wttrData = JSON.parse(text)
       const current = wttrData.current_condition?.[0]
       
       if (current) {
@@ -547,25 +554,35 @@ export default function WeatherMap({
           const response = await fetch(`https://wttr.in/${cell.lat.toFixed(2)},${cell.lng.toFixed(2)}?format=j1`)
           
           if (response.ok) {
-            const data = await response.json()
-            const current = data.current_condition?.[0]
+            const text = await response.text()
             
-            if (current) {
-              gridWithData.push({
-                ...cell,
-                data: {
-                  temperature: parseFloat(current.temp_C) || 0,
-                  humidity: parseFloat(current.humidity) || 0,
-                  wind_speed: parseFloat(current.windspeedKmph) / 3.6 || 0,
-                  precipitation: parseFloat(current.precipMM) || 0,
-                  cloud_cover: parseFloat(current.cloudcover) || 0,
-                  uv_index: parseFloat(current.uvIndex) || 0
+            // Check if response is actually JSON (wttr.in sometimes returns error messages)
+            if (!text.startsWith('Unknown') && !text.startsWith('ERROR')) {
+              try {
+                const data = JSON.parse(text)
+                const current = data.current_condition?.[0]
+                
+                if (current) {
+                  gridWithData.push({
+                    ...cell,
+                    data: {
+                      temperature: parseFloat(current.temp_C) || 0,
+                      humidity: parseFloat(current.humidity) || 0,
+                      wind_speed: parseFloat(current.windspeedKmph) / 3.6 || 0,
+                      precipitation: parseFloat(current.precipMM) || 0,
+                      cloud_cover: parseFloat(current.cloudcover) || 0,
+                      uv_index: parseFloat(current.uvIndex) || 0
+                    }
+                  })
+                  continue
                 }
-              })
+              } catch (parseErr) {
+                console.warn('🌐 [Wttr.in] JSON parse error for cell:', cell)
+              }
             }
           }
         } catch (err) {
-          console.warn('🌐 [Wttr.in] Failed to fetch cell:', cell, err)
+          console.warn('🌐 [Wttr.in] Failed to fetch cell:', cell)
           // Add cell with fallback data
           gridWithData.push({
             ...cell,

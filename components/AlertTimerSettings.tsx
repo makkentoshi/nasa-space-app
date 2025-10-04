@@ -20,18 +20,18 @@ interface AlertTimerConfig {
 const DEFAULT_CONFIG: AlertTimerConfig = {
   enabled: false,
   time: '08:00',
-  customPrompt: 'Доброе утро! Пожалуйста, предоставьте подробный прогноз погоды на сегодня с рекомендациями по одежде и активностям.',
+  customPrompt: 'Good morning! Please provide a detailed weather forecast for today with recommendations for clothing and activities.',
   selectedDays: [1, 2, 3, 4, 5], // Monday-Friday
 };
 
 const DAYS_OF_WEEK = [
-  { id: 0, name: 'Воскресенье', short: 'Вс' },
-  { id: 1, name: 'Понедельник', short: 'Пн' },
-  { id: 2, name: 'Вторник', short: 'Вт' },
-  { id: 3, name: 'Среда', short: 'Ср' },
-  { id: 4, name: 'Четверг', short: 'Чт' },
-  { id: 5, name: 'Пятница', short: 'Пт' },
-  { id: 6, name: 'Суббота', short: 'Сб' },
+  { id: 0, name: 'Sunday', short: 'Sun' },
+  { id: 1, name: 'Monday', short: 'Mon' },
+  { id: 2, name: 'Tuesday', short: 'Tue' },
+  { id: 3, name: 'Wednesday', short: 'Wed' },
+  { id: 4, name: 'Thursday', short: 'Thu' },
+  { id: 5, name: 'Friday', short: 'Fri' },
+  { id: 6, name: 'Saturday', short: 'Sat' },
 ];
 
 export default function AlertTimerSettings() {
@@ -73,14 +73,14 @@ export default function AlertTimerSettings() {
     try {
       // Validate time format
       if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(config.time)) {
-        toast.error('Неверный формат времени. Используйте HH:MM (например, 08:00)');
+        toast.error('Invalid time format. Use HH:MM (e.g., 08:00)');
         setIsSaving(false);
         return;
       }
 
       // Validate at least one day selected
       if (config.enabled && config.selectedDays.length === 0) {
-        toast.error('Выберите хотя бы один день недели');
+        toast.error('Please select at least one day of the week');
         setIsSaving(false);
         return;
       }
@@ -98,13 +98,13 @@ export default function AlertTimerSettings() {
       // If enabled, schedule the notification (in real app, this would be handled by backend)
       if (config.enabled) {
         // TODO: Call API to schedule push notifications
-        toast.success(`✅ Настройки сохранены! Уведомления будут приходить в ${config.time}`);
+        toast.success(`✅ Settings saved! Notifications will arrive at ${config.time}`);
       } else {
-        toast.success('✅ Настройки сохранены');
+        toast.success('✅ Settings saved');
       }
     } catch (error) {
       console.error('Failed to save alert timer config:', error);
-      toast.error('❌ Не удалось сохранить настройки');
+      toast.error('❌ Failed to save settings');
     } finally {
       setIsSaving(false);
     }
@@ -113,7 +113,7 @@ export default function AlertTimerSettings() {
   const resetConfig = () => {
     setConfig(DEFAULT_CONFIG);
     setHasChanges(true);
-    toast.info('Настройки сброшены к значениям по умолчанию');
+    toast.info('Settings reset to default values');
   };
 
   return (
@@ -126,10 +126,10 @@ export default function AlertTimerSettings() {
             </div>
             <div>
               <CardTitle className="text-lg font-bold text-gray-900">
-                Настройки уведомлений
+                Notification Settings
               </CardTitle>
               <CardDescription className="text-sm text-gray-600">
-                Настройте ежедневные уведомления с прогнозом погоды
+                Configure daily weather forecast notifications
               </CardDescription>
             </div>
           </div>
@@ -142,12 +142,12 @@ export default function AlertTimerSettings() {
             {config.enabled ? (
               <>
                 <Check className="h-4 w-4 mr-1" />
-                Включено
+                Enabled
               </>
             ) : (
               <>
                 <X className="h-4 w-4 mr-1" />
-                Выключено
+                Disabled
               </>
             )}
           </Button>
@@ -159,7 +159,7 @@ export default function AlertTimerSettings() {
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
             <Clock className="h-4 w-4 text-blue-600" />
-            Время уведомления
+            Notification Time
           </Label>
           <Input
             type="time"
@@ -170,7 +170,7 @@ export default function AlertTimerSettings() {
           />
           <p className="text-xs text-gray-500 flex items-center gap-1">
             <Bell className="h-3 w-3" />
-            Уведомление будет приходить каждый день в это время
+            Notification will arrive every day at this time
           </p>
         </div>
 
@@ -178,7 +178,7 @@ export default function AlertTimerSettings() {
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
             <Calendar className="h-4 w-4 text-blue-600" />
-            Дни недели
+            Days of Week
           </Label>
           <div className="flex flex-wrap gap-2">
             {DAYS_OF_WEEK.map(day => (
@@ -197,24 +197,24 @@ export default function AlertTimerSettings() {
             ))}
           </div>
           <p className="text-xs text-gray-500">
-            Выбрано дней: <span className="font-semibold">{config.selectedDays.length}</span>
+            Selected days: <span className="font-semibold">{config.selectedDays.length}</span>
           </p>
         </div>
 
         {/* Custom Prompt */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700">
-            Пользовательский запрос (необязательно)
+            Custom Prompt (optional)
           </Label>
           <Textarea
             value={config.customPrompt}
             onChange={(e) => setConfig(prev => ({ ...prev, customPrompt: e.target.value }))}
-            placeholder="Введите свой запрос для AI (например, 'Дай прогноз с рекомендациями по одежде')"
+            placeholder="Enter your AI prompt (e.g., 'Give me a forecast with clothing recommendations')"
             className="min-h-[100px] border-2 focus:border-blue-500 resize-none"
             disabled={!config.enabled}
           />
           <p className="text-xs text-gray-500">
-            Этот текст будет использоваться для генерации персонализированного прогноза
+            This text will be used to generate a personalized forecast
           </p>
         </div>
 
@@ -225,13 +225,13 @@ export default function AlertTimerSettings() {
               <Bell className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-blue-900">
-                  Пример уведомления:
+                  Notification Preview:
                 </p>
                 <p className="text-sm text-blue-700">
-                  "🌤️ Доброе утро! Сегодня {config.time.split(':')[0]}:00. {config.customPrompt.slice(0, 80)}..."
+                  "🌤️ Good morning! Today at {config.time.split(':')[0]}:00. {config.customPrompt.slice(0, 80)}..."
                 </p>
                 <p className="text-xs text-blue-600">
-                  Дни: {config.selectedDays.map(id => DAYS_OF_WEEK.find(d => d.id === id)?.short).join(', ')}
+                  Days: {config.selectedDays.map(id => DAYS_OF_WEEK.find(d => d.id === id)?.short).join(', ')}
                 </p>
               </div>
             </div>
@@ -241,7 +241,7 @@ export default function AlertTimerSettings() {
         {/* Last Modified */}
         {config.lastModified && (
           <p className="text-xs text-gray-400 text-center">
-            Последнее изменение: {new Date(config.lastModified).toLocaleString('ru-RU')}
+            Last modified: {new Date(config.lastModified).toLocaleString('en-US')}
           </p>
         )}
 
@@ -255,12 +255,12 @@ export default function AlertTimerSettings() {
             {isSaving ? (
               <>
                 <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                Сохранение...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Сохранить настройки
+                Save Settings
               </>
             )}
           </Button>
@@ -270,7 +270,7 @@ export default function AlertTimerSettings() {
             disabled={isSaving}
             className="border-2 hover:bg-gray-50"
           >
-            Сброс
+            Reset
           </Button>
         </div>
       </CardContent>

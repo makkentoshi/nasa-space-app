@@ -356,18 +356,6 @@ export default function ForecastPage() {
                 <div className="text-xs opacity-90">Download weather datasets</div>
               </div>
             </Link>
-
-            <Link href="/route" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600" />
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="absolute left-4 bottom-3 text-white">
-                <div className="flex items-center gap-2 mb-1">
-                  <MapPin className="h-4 w-4" />
-                  <div className="text-sm font-semibold">Smart Route</div>
-                </div>
-                <div className="text-xs opacity-90">Plan weather-aware routes</div>
-              </div>
-            </Link>
           </div>
         </div>
 
@@ -389,6 +377,12 @@ export default function ForecastPage() {
             <div className="rounded-2xl bg-[#eef2ff] flex flex-col items-center py-6 shadow hover:shadow-lg transition cursor-pointer">
               <BarChart3 className="h-8 w-8 text-blue-600" />
               <span className="mt-2 text-base font-semibold text-gray-900">Stats</span>
+            </div>
+          </Link>
+          <Link href="/route">
+            <div className="rounded-2xl bg-gradient-to-br from-sky-400 to-sky-500 flex flex-col items-center py-6 shadow hover:shadow-lg transition cursor-pointer">
+              <MapPin className="h-8 w-8 text-white" />
+              <span className="mt-2 text-base font-semibold text-white">Smart Route</span>
             </div>
           </Link>
         </div>
