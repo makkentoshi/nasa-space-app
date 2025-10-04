@@ -1,23 +1,28 @@
-import React from 'react';
-import tokens from './design-tokens';
+"use client"
 
-type IconProps = React.SVGProps<SVGSVGElement> & {
-  size?: number | string;
-  color?: string;
-  label?: string;
-};
+import React from 'react'
+import tokens from '@/components/ui/design-tokens'
 
-export default function Icon({ size = tokens.sizes.iconMd, color = 'currentColor', label, ...props }: IconProps) {
-  const aria = label ? { 'aria-label': label, role: 'img' } : { 'aria-hidden': true };
-  const px = typeof size === 'number' ? `${size}px` : size;
+export interface IconProps {
+  icon?: React.ComponentType<any>
+  size?: number
+  color?: string
+  ariaLabel?: string
+  className?: string
+}
+
+export default function Icon({ icon: IconComp, size = tokens.icons.md, color, ariaLabel, className }: IconProps) {
+  if (!IconComp) return null
+
+  const style = {
+    width: `${size}px`,
+    height: `${size}px`,
+    color: color || tokens.colors.gray800,
+  } as React.CSSProperties
 
   return (
-    <svg width={px} height={px} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...aria} {...props}>
-      <g stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-        {/* Default placeholder: circle */}
-        <circle cx="12" cy="12" r="9" opacity="0.08" />
-        <circle cx="12" cy="12" r="5" />
-      </g>
-    </svg>
-  );
+    <span className={className} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <IconComp size={size} color={color || tokens.colors.gray800} aria-hidden={ariaLabel ? undefined : true} aria-label={ariaLabel} />
+    </span>
+  )
 }

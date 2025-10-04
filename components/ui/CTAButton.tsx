@@ -1,33 +1,33 @@
-import React from 'react';
-import tokens from './design-tokens';
-import { cn } from '../../lib/utils';
+"use client"
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'emergency' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-};
+import React from 'react'
+import tokens from '@/components/ui/design-tokens'
 
-export default function CTAButton({ variant = 'primary', size = 'md', className, children, ...rest }: Props) {
-  const bg = variant === 'primary' ? tokens.colors.primary : variant === 'emergency' ? tokens.colors.emergency : 'transparent';
-  const color = variant === 'ghost' ? tokens.colors.primary : '#fff';
-  const pad = size === 'sm' ? '8px 12px' : size === 'lg' ? '14px 20px' : '10px 16px';
+export interface CTAButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger'
+  icon?: React.ComponentType<any>
+}
+
+export default function CTAButton({ variant = 'primary', icon: IconComp, children, className, ...rest }: CTAButtonProps) {
+  const bg = variant === 'primary' ? tokens.colors.primary : variant === 'danger' ? tokens.colors.danger : tokens.colors.gray300
+  const fg = variant === 'primary' ? tokens.colors.white : tokens.colors.gray800
 
   return (
     <button
       {...rest}
-      className={cn('cta-button', className)}
+      className={`inline-flex items-center justify-center gap-2 font-medium ${className || ''}`}
       style={{
         background: bg,
-        color,
-        padding: pad,
-        borderRadius: tokens.radii.md,
-        fontFamily: tokens.fonts.primary,
-        fontSize: tokens.fontSizes.md,
-        boxShadow: tokens.shadows.sm,
-        border: variant === 'ghost' ? `1px solid ${tokens.colors.border}` : 'none',
+        color: fg,
+        padding: `${tokens.spacing.sm} ${tokens.spacing.lg}`,
+        borderRadius: tokens.radii.pill,
+        boxShadow: tokens.shadows.elevated,
+        fontFamily: tokens.fonts.ui,
+        minHeight: 44,
       }}
     >
-      {children}
+      {IconComp && <IconComp size={tokens.icons.md} />}
+      <span>{children}</span>
     </button>
-  );
+  )
 }
