@@ -1,26 +1,19 @@
 import type { NextConfig } from "next";
-import { withPWA } from "next-pwa";
-import runtimeCaching from "next-pwa/cache";
+// @ts-ignore - next-pwa doesn't have proper types
+import withPWAInit from "next-pwa";
 
 const isProd = process.env.NODE_ENV === "production";
 
+// @ts-ignore
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: !isProd,
+});
+
 const nextConfig: NextConfig = {
-  // keep existing options here
-  // appDir is an experimental option; cast to any to avoid strict type mismatch
-  experimental: {
-    // TypeScript Next types may lag behind runtime options in newer Next versions
-    // so we cast this block to `any` when merging.
-    appDir: true,
-  } as any,
+  /* config options here */
 };
 
-export default withPWA({
-  ...nextConfig,
-  pwa: {
-    dest: "public",
-    register: false,
-    skipWaiting: true,
-    disable: !isProd,
-    runtimeCaching,
-  },
-});
+export default withPWA(nextConfig);

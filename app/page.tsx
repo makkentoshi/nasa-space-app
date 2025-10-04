@@ -1,144 +1,308 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
+import Link from 'next/link';
+import { AppShell } from '@/app/components/layout/AppShell';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
+import { Alert, AlertDescription } from '@/app/components/ui/alert';
+import ModeSelector from '@/app/components/ModeSelector';
+import BottomBar, { type ForecastTab } from '@/app/components/BottomBar';
+import EmergencyBottomBar, { type EmergencyTab } from '@/app/components/EmergencyBottomBar';
+import { Home, AlertTriangle, MapPin, MessageCircle, Users, Waves, Flame, Earth, Wind } from 'lucide-react';
 import { useForecast } from '@/app/contexts/ForecastContext';
 import DaySelector from '@/app/components/DaySelector';
 import ThresholdInput from '@/app/components/ThresholdInput';
 import StatisticsChart from '@/app/components/StatisticsChart';
-import AIChat from '@/app/components/AIChat';
 import ExportButtons from '@/app/components/ExportButtons';
 
-// Dynamic import for Map component to avoid SSR issues with Leaflet
 const Map = dynamic(() => import('@/app/components/Map'), { ssr: false });
+const EmergencyMap = dynamic(() => import('@/app/components/EmergencyMap'), { ssr: false });
+const WeatherAnimation = dynamic(() => import('@/app/components/WeatherAnimation'), { ssr: false });
+const ComfortIndex = dynamic(() => import('@/app/components/ComfortIndex'), { ssr: false });
+const RouteAssistant = dynamic(() => import('@/app/components/RouteAssistant'), { ssr: false });
+const AIChat = dynamic(() => import('@/app/components/AIChat'), { ssr: false });
 
-export default function Home() {
-  const {
-    forecastState,
+type AppMode = 'forecast' | 'emergency';
+
+export default function HomePage() {
+  const [mode, setMode] = useState<AppMode>('emergency');
+  const [forecastTab, setForecastTab] = useState<ForecastTab>('map');
+  const [emergencyTab, setEmergencyTab] = useState<EmergencyTab>('map');
+  const [emergencyAlertCount] = useState(3);
+  
+  const { 
+    forecastState, 
     aiState,
-    setLocation,
+    setLocation, 
     setDayOfYear,
     setWindowDays,
     setVariable,
     setThreshold,
     loadStatistics,
-    askAI,
+    askAI
   } = useForecast();
+  const location = forecastState.location;
 
   const handleLoadStatistics = async () => {
     await loadStatistics();
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">resQ - Forecast Mode</h1>
-          <p className="text-sm text-blue-100 mt-1">
-            NASA Challenge: Will It Rain On My Parade?
-          </p>
-        </div>
-      </header>
+  // Render content based on mode and active tab
+  const renderForecastContent = () => {
+    switch (forecastTab) {
+      case 'map':
+        return (
+          <div className="space-y-4 animate-fadeIn">
+            <Card>
+              <CardContent className="pt-6 ">
+                <DaySelector
+                  dayOfYear={forecastState.day_of_year}
+                  windowDays={forecastState.window_days}
+                  onDayChange={setDayOfYear}
+                  onWindowChange={setWindowDays}
+                />
+              </CardContent>
+            </Card>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Controls */}
-          <div className="lg:col-span-1 space-y-6">
-            <DaySelector
-              dayOfYear={forecastState.day_of_year}
-              windowDays={forecastState.window_days}
-              onDayChange={setDayOfYear}
-              onWindowChange={setWindowDays}
-            />
+            <Card>
+              <CardContent className="pt-6">
+                <ThresholdInput
+                  variable={forecastState.variable}
+                  threshold={forecastState.threshold}
+                  onVariableChange={setVariable}
+                  onThresholdChange={setThreshold}
+                />
+              </CardContent>
+            </Card>
 
-            <ThresholdInput
-              variable={forecastState.variable}
-              threshold={forecastState.threshold}
-              onVariableChange={setVariable}
-              onThresholdChange={setThreshold}
-            />
-
-            <button
+            <Button 
               onClick={handleLoadStatistics}
-              disabled={!forecastState.location || forecastState.loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition shadow-md"
+              disabled={!location || forecastState.loading}
+              className="w-full"
+              size="lg"
             >
-              {forecastState.loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Loading...
-                </span>
-              ) : (
-                'Load Statistics'
-              )}
-            </button>
+              {forecastState.loading ? 'Analyzing...' : '📊 Load Statistics'}
+            </Button>
 
             {forecastState.error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-800">❌ {forecastState.error}</p>
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{forecastState.error}</AlertDescription>
+              </Alert>
             )}
 
-            <ExportButtons statistics={forecastState.statistics} />
-          </div>
+            <Card>
+              <CardContent className="p-0">
+                <Map
+                  onLocationSelect={setLocation}
+                  selectedLocation={location}
+                  className="h-[400px] rounded-2xl overflow-hidden"
+                />
+              </CardContent>
+            </Card>
 
-          {/* Right Column - Map and Results */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Map */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-4 bg-gray-50 border-b border-gray-200">
-                <h2 className="text-lg font-semibold">Select Location</h2>
-                <p className="text-xs text-gray-600 mt-1">
-                  Click on the map to select a location for analysis
-                </p>
-              </div>
-              <Map
-                onLocationSelect={setLocation}
-                selectedLocation={forecastState.location}
-                className="h-[400px]"
-              />
-            </div>
-
-            {/* Statistics Results */}
             {forecastState.statistics && (
-              <StatisticsChart statistics={forecastState.statistics} />
-            )}
-
-            {!forecastState.statistics && !forecastState.loading && (
-              <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  No Data Yet
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Select a location on the map, configure your parameters, and click "Load Statistics"
-                </p>
-              </div>
+              <>
+                <StatisticsChart statistics={forecastState.statistics} />
+                <ExportButtons statistics={forecastState.statistics} />
+              </>
             )}
           </div>
-        </div>
-      </main>
+        );
 
-      {/* AI Chat Component */}
+      case 'animation':
+        return (
+          <div className="animate-fadeIn">
+            <WeatherAnimation
+              variable={forecastState.variable}
+              currentValue={forecastState.statistics?.mean}
+            />
+          </div>
+        );
+
+      case 'comfort':
+        return (
+          <div className="animate-fadeIn">
+            <ComfortIndex
+              temperature={forecastState.statistics?.mean || 22}
+              humidity={70}
+              windSpeed={5}
+            />
+          </div>
+        );
+
+      case 'ai':
+        return (
+          <div className="animate-fadeIn">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Weather Assistant</CardTitle>
+                <CardDescription>Ask questions about weather conditions and get AI-powered insights</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🤖</div>
+                  <p className="text-gray-600 mb-4">
+                    Click the AI button in the bottom right to start chatting with ForecastGPT-5
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'route':
+        return (
+          <div className="animate-fadeIn">
+            <RouteAssistant />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const renderEmergencyContent = () => {
+    switch (emergencyTab) {
+      case 'map':
+        return (
+          <div className="h-screen animate-fadeIn">
+            <EmergencyMap center={location ? [location.lat, location.lon] : undefined} />
+          </div>
+        );
+
+      case 'alerts':
+        return (
+          <div className="space-y-4 animate-fadeIn">
+            <h2 className="text-2xl font-bold text-heavy">Active Alerts</h2>
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="border-l-4 border-l-red-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="h-8 w-8 text-red-500" />
+                      <div>
+                        <h3 className="font-bold text-lg">Severe Weather Alert #{i}</h3>
+                        <p className="text-sm text-gray-600">Active since 2 hours ago</p>
+                      </div>
+                    </div>
+                    <Badge variant="destructive">EXTREME</Badge>
+                  </div>
+                  <p className="text-gray-700 mb-4">
+                    Strong storms approaching the area. Seek shelter immediately.
+                  </p>
+                  <Button className="w-full">View Details & Safety Instructions</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+
+      case 'nearby':
+        return (
+          <div className="space-y-4 animate-fadeIn">
+            <h2 className="text-2xl font-bold text-heavy">Nearby Resources</h2>
+            {['🏥 Emergency Shelters', '🚑 Medical Centers', '🚒 Fire Stations', '👮 Police Stations'].map((resource, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-lg">{resource}</h3>
+                    <Badge>Open 24/7</Badge>
+                  </div>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <p>📍 Distance: 2.5 km away</p>
+                    <p>🕐 Est. time: 8 minutes by car</p>
+                    <p>📞 Emergency: +1 (555) 123-4567</p>
+                  </div>
+                  <Button className="w-full">Get Directions</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+
+      case 'notifications':
+        return (
+          <div className="space-y-3 animate-fadeIn">
+            <h2 className="text-2xl font-bold text-heavy mb-4">Notifications</h2>
+            {[
+              { icon: '⚠️', title: 'Severe Weather Alert', time: '5 min ago' },
+              { icon: '🌊', title: 'Flood Warning Update', time: '1 hour ago' },
+              { icon: '🔥', title: 'Wildfire Advisory', time: '2 hours ago' },
+              { icon: '✅', title: 'All Clear: Storm Passed', time: '5 hours ago' },
+            ].map((notif, i) => (
+              <Card key={i} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="py-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">{notif.icon}</span>
+                    <div className="flex-1">
+                      <h3 className="font-bold">{notif.title}</h3>
+                      <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <AppShell>
+      <div className="pb-24 px-4 pt-4 bg-[#F8FAF8] min-h-screen">
+        {/* Header */}
+        <Card className="py-4 px-4 flex flex-col items-center mb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <svg className="h-8 w-8 text-[#53B175]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L4 9v12h16V9l-8-7zm0 2.828L18 10v9h-5v-6h-2v6H6v-9l6-5.172z"/>
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900">resQ</h1>
+          <p className="text-sm text-gray-500 text-center max-w-xs">
+            {mode === 'emergency' ? 'Emergency alerts & assistance' : 'Weather forecasting & planning'}
+          </p>
+        </Card>
+
+        {/* Emergency/Forecast Toggle */}
+        <div className="mb-4 flex justify-center items-center w-full">
+          <ModeSelector currentMode={mode} onModeChange={setMode} />
+        </div>
+
+        {/* Tab Content */}
+        {mode === 'forecast' ? renderForecastContent() : renderEmergencyContent()}
+
+      </div>
+
+      {/* AI Chat - Always available */}
       <AIChat
         onQuery={askAI}
         response={aiState.response}
         loading={aiState.loading}
         error={aiState.error}
+        weatherData={{
+          temperature: forecastState.statistics?.mean,
+          location: location ? `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}` : undefined,
+          date: new Date().toLocaleDateString(),
+        }}
       />
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white mt-12">
-        <div className="container mx-auto px-4 py-6 text-center">
-          <p className="text-sm">
-            resQ - NASA Space Apps Challenge 2025
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Data sources: GPM IMERG, MERRA-2, NASA POWER
-          </p>
-        </div>
-      </footer>
-    </div>
+      {/* Bottom Navigation */}
+      {mode === 'forecast' ? (
+        <BottomBar activeTab={forecastTab} onTabChange={setForecastTab} />
+      ) : (
+        <EmergencyBottomBar 
+          activeTab={emergencyTab} 
+          onTabChange={setEmergencyTab}
+          alertCount={emergencyAlertCount}
+        />
+      )}
+    </AppShell>
   );
 }
