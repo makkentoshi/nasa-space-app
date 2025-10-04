@@ -319,6 +319,18 @@ export default function ForecastPage() {
                 <div className="text-xs opacity-90">Smart weather predictions & insights</div>
               </div>
             </Link>
+
+            <Link href="/forecast/behavior" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
+              <div className="absolute inset-0 bg-gradient-to-br from-sky-400 via-sky-500 to-sky-600" />
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="absolute left-4 bottom-3 text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="h-4 w-4" />
+                  <div className="text-sm font-semibold">Behavior Prediction</div>
+                </div>
+                <div className="text-xs opacity-90">AI learns your weather patterns</div>
+              </div>
+            </Link>
             
             <Link href="/forecast/stats" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 via-indigo-500 to-indigo-600" />

@@ -7,20 +7,20 @@ import { useAppMode, type AppMode } from "./ModeToggle";
 
 // Navigation items for Emergency Mode
 const emergencyNavItems = [
-  { name: "Home", href: "/dashboard", icon: Home },
-  { name: "Map", href: "/route", icon: Map },
-  { name: "SOS", href: "/sos", icon: AlertTriangle },
-  { name: "Friends", href: "/friends", icon: Users },
-  { name: "ChatGPT", href: "/chatgpt", icon: Bot },
+  { name: "Home", href: "/dashboard", icon: Home, color: "#53B175" },
+  { name: "Map", href: "/route", icon: Map, color: "#53B175" },
+  { name: "SOS", href: "/sos", icon: AlertTriangle, color: "#c1121f" },
+  { name: "Friends", href: "/friends", icon: Users, color: "#53B175" },
+  { name: "Chat", href: "/chatgpt", icon: Bot, color: "#53B175" },
 ];
 
 // Navigation items for Forecast Mode
 const forecastNavItems = [
-  { name: "Forecast", href: "/forecast", icon: Cloud },
-  { name: "Map", href: "/forecast/map", icon: Map },
-  { name: "AI", href: "/forecast/ai", icon: Brain },
-  { name: "Stats", href: "/forecast/stats", icon: BarChart3 },
-  { name: "Export", href: "/forecast/export", icon: Download },
+  { name: "Forecast", href: "/forecast", icon: Cloud, color: "#2563eb" },
+  { name: "Map", href: "/forecast/map", icon: Map, color: "#2563eb" },
+  { name: "AI", href: "/forecast/ai", icon: Brain, color: "#2563eb" },
+  { name: "Stats", href: "/forecast/stats", icon: BarChart3, color: "#2563eb" },
+  { name: "Behavior", href: "/forecast/behavior", icon: Brain, color: "#8b5cf6" },
 ];
 
 export interface BottomBarProps {
@@ -30,15 +30,19 @@ export interface BottomBarProps {
   bgColor?: string;
 }
 
-export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColor = "#37393F", bgColor = "#FCFCFC" }: BottomBarProps) {
+export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColor = "#7C8B9D", bgColor = "#FFFFFF" }: BottomBarProps) {
   const pathname = usePathname();
   const [mode] = useAppMode();
   
   // Choose navigation items based on current mode
   const navItems = mode === 'forecast' ? forecastNavItems : emergencyNavItems;
   
+  // Determine colors based on mode
+  const modeActiveColor = mode === 'emergency' ? '#53B175' : '#2563eb'
+  const modeCenterColor = mode === 'emergency' ? '#c1121f' : '#2563eb'
+  
   return (
-  <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center border-t px-1 py-1 md:hidden" style={{ background: bgColor }}>
+  <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center border-t px-1 py-1 md:hidden shadow-lg" style={{ background: bgColor }}>
       {navItems.map((item, idx) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
@@ -49,13 +53,17 @@ export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColo
         if (isCenterButton) {
           return (
             <div key={item.name} className="flex-1 flex justify-center" style={{ textAlign: 'center' }}>
-              <div className="-mt-2">
-                <Link href={item.href} className="inline-flex flex-col items-center justify-center p-2 rounded-full shadow-lg bg-white" 
-                      style={{ color: isActive ? (mode === 'emergency' ? '#c1121f' : '#2563eb') : inactiveColor }}>
-                  <Icon size={iconSize + 6} color={isActive ? (mode === 'emergency' ? '#c1121f' : '#2563eb') : inactiveColor} />
+              <div className="-mt-3">
+                <Link href={item.href} 
+                      className="inline-flex flex-col items-center justify-center p-3 rounded-full shadow-xl"
+                      style={{ 
+                        background: isActive ? modeCenterColor : '#FFFFFF',
+                        border: `2px solid ${modeCenterColor}`
+                      }}>
+                  <Icon size={iconSize + 8} color={isActive ? '#FFFFFF' : modeCenterColor} strokeWidth={2.5} />
                 </Link>
-                <div className="text-[11px] mt-1 font-bold text-center hidden sm:block" 
-                     style={{ color: isActive ? (mode === 'emergency' ? '#c1121f' : '#2563eb') : inactiveColor }}>{item.name}</div>
+                <div className="text-[10px] mt-1 font-bold text-center" 
+                     style={{ color: isActive ? modeCenterColor : inactiveColor }}>{item.name}</div>
               </div>
             </div>
           )
@@ -65,11 +73,15 @@ export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColo
           <Link
             key={item.name}
             href={item.href}
-            className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-lg transition font-bold"
-            style={{ color: isActive ? activeColor : inactiveColor }}
+            className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all"
+            style={{ color: isActive ? item.color : inactiveColor }}
           >
-            <Icon size={iconSize} color={isActive ? activeColor : inactiveColor} />
-              <span className="text-[10px] mt-1 hidden sm:block">{item.name}</span>
+            <Icon 
+              size={iconSize} 
+              color={isActive ? item.color : inactiveColor} 
+              strokeWidth={isActive ? 2.5 : 2}
+            />
+            <span className="text-[10px] mt-1 font-medium">{item.name}</span>
           </Link>
         )
       })}

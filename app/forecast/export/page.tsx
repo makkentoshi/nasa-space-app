@@ -50,7 +50,18 @@ export default function ForecastExportPage() {
     }
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    // Validate inputs
+    if (variables.length === 0) {
+      alert('Please select at least one variable')
+      return
+    }
+
+    if (!location && (!bbox.north || !bbox.south || !bbox.east || !bbox.west)) {
+      alert('Please provide a location or complete bounding box')
+      return
+    }
+
     const newJob: ExportJob = {
       id: `job_${Date.now()}`,
       format,
@@ -61,29 +72,87 @@ export default function ForecastExportPage() {
 
     setExportJobs([newJob, ...exportJobs])
 
-    let progress = 0
-    const interval = setInterval(() => {
-      progress += Math.random() * 20
-      if (progress >= 100) {
-        progress = 100
-        clearInterval(interval)
-        setExportJobs(jobs => 
-          jobs.map(job => 
-            job.id === newJob.id 
-              ? { ...job, status: 'completed', progress: 100, downloadUrl: '#' }
-              : job
-          )
-        )
-      } else {
-        setExportJobs(jobs => 
-          jobs.map(job => 
-            job.id === newJob.id 
-              ? { ...job, status: 'processing', progress: Math.round(progress) }
-              : job
-          )
-        )
+    try {
+      // Parse location if provided
+      let locationData = null
+      if (location) {
+        const [lat, lng] = location.split(',').map(s => parseFloat(s.trim()))
+        if (!isNaN(lat) && !isNaN(lng)) {
+          locationData = { lat, lng }
+        }
       }
-    }, 500)
+
+      // Parse bounding box if provided
+      let bboxData = null
+      if (bbox.north && bbox.south && bbox.east && bbox.west) {
+        bboxData = {
+          north: parseFloat(bbox.north),
+          south: parseFloat(bbox.south),
+          east: parseFloat(bbox.east),
+          west: parseFloat(bbox.west)
+        }
+      }
+
+      // Call export API
+      const response = await fetch(`/api/forecast/export/${format}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: locationData,
+          bbox: bboxData,
+          dateRange,
+          variables,
+          includeMetadata: true
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Export request failed')
+      }
+
+      const data = await response.json()
+
+      // Update job with download URL
+      setExportJobs(jobs => 
+        jobs.map(job => 
+          job.id === newJob.id 
+            ? { 
+                ...job, 
+                status: 'completed', 
+                progress: 100, 
+                downloadUrl: data.downloadUrl 
+              }
+            : job
+        )
+      )
+
+      // Simulate progress animation
+      let progress = 0
+      const interval = setInterval(() => {
+        progress += Math.random() * 20
+        if (progress >= 95) {
+          clearInterval(interval)
+        } else {
+          setExportJobs(jobs => 
+            jobs.map(job => 
+              job.id === newJob.id 
+                ? { ...job, status: 'processing', progress: Math.round(progress) }
+                : job
+            )
+          )
+        }
+      }, 300)
+
+    } catch (error) {
+      console.error('Export error:', error)
+      setExportJobs(jobs => 
+        jobs.map(job => 
+          job.id === newJob.id 
+            ? { ...job, status: 'failed', progress: 0 }
+            : job
+        )
+      )
+    }
   }
 
   const getStatusColor = (status: ExportJob['status']) => {
