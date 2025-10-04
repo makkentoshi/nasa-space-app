@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppShell } from "@/components/layout/AppShell";
 import { Home, AlertTriangle, MapPin, MessageCircle, Users } from "lucide-react";
 import { Waves, Flame, Earth, Wind } from "lucide-react";
-import { useAppStore } from "@/app/lib/store/useAppStore";
+import { useAppStore } from "@/lib/store/useAppStore";
 import Link from "next/link";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 
