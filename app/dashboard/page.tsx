@@ -99,7 +99,7 @@ export default function DashboardPage() {
           </h2>
           <div className="space-y-3">
             <Link href="/alerts/type/tsunami" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
-              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/tsunami.webp')` }} />
+              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/tsunami.svg')` }} />
               <div className="absolute inset-0 bg-black/40" />
               <div className="absolute left-4 bottom-3 text-white">
                 <div className="flex items-center gap-2 mb-1">
@@ -110,7 +110,7 @@ export default function DashboardPage() {
               </div>
             </Link>
             <Link href="/alerts/type/fire" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
-              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/fire.webp')` }} />
+              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/fire.svg')` }} />
               <div className="absolute inset-0 bg-black/40" />
               <div className="absolute left-4 bottom-3 text-white">
                 <div className="flex items-center gap-2 mb-1">
@@ -121,7 +121,7 @@ export default function DashboardPage() {
               </div>
             </Link>
             <Link href="/alerts/type/earthquake" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
-              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/earthquake.webp')` }} />
+              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/earthquake.svg')` }} />
               <div className="absolute inset-0 bg-black/40" />
               <div className="absolute left-4 bottom-3 text-white">
                 <div className="flex items-center gap-2 mb-1">
@@ -132,7 +132,7 @@ export default function DashboardPage() {
               </div>
             </Link>
             <Link href="/alerts/type/hurricane" className="block rounded-2xl overflow-hidden relative h-32 shadow hover:shadow-lg transition">
-              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/hurricane.webp')` }} />
+              <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: `url('/alerts/hurricane.svg')` }} />
               <div className="absolute inset-0 bg-black/40" />
               <div className="absolute left-4 bottom-3 text-white">
                 <div className="flex items-center gap-2 mb-1">
