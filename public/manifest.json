@@ -1,20 +1,25 @@
 {
-  "short_name": "ResQ",
-  "name": "ResQ - NASA Challenge",
+  "short_name": "resQ",
+  "name": "resQ - Forecast Mode | NASA Challenge",
+  "description": "Will It Rain On My Parade? Climate forecast application using NASA data with AI-powered recommendations.",
   "icons": [
     {
       "src": "/window.svg",
       "type": "image/svg+xml",
-      "sizes": "any"
+      "sizes": "any",
+      "purpose": "any"
     },
     {
       "src": "/file.svg",
       "type": "image/svg+xml",
-      "sizes": "any"
+      "sizes": "any",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#2563eb",
+  "background_color": "#f9fafb",
+  "categories": ["weather", "utilities", "education"],
+  "orientation": "any"
 }
