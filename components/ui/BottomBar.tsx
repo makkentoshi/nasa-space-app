@@ -18,7 +18,7 @@ const emergencyNavItems = [
 const forecastNavItems = [
   { name: "Forecast", href: "/forecast", icon: Cloud, color: "#2563eb" },
   { name: "Map", href: "/forecast/map", icon: Map, color: "#2563eb" },
-  { name: "AI", href: "/forecast/ai", icon: Brain, color: "#2563eb" },
+  { name: "AI", href: "/chat", icon: Bot, color: "#2563eb" },
   { name: "Stats", href: "/forecast/stats", icon: BarChart3, color: "#2563eb" },
   { name: "Behavior", href: "/forecast/behavior", icon: Brain, color: "#8b5cf6" },
 ];
@@ -34,12 +34,19 @@ export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColo
   const pathname = usePathname();
   const [mode] = useAppMode();
   
-  // Choose navigation items based on current mode
-  const navItems = mode === 'forecast' ? forecastNavItems : emergencyNavItems;
+  // Determine actual mode based on current pathname (override mode if needed)
+  const isInForecastArea = pathname.startsWith('/forecast') || pathname === '/chat' || pathname === '/settings';
+  const isInEmergencyArea = pathname === '/dashboard' || pathname === '/sos' || pathname === '/route' || pathname === '/friends' || pathname === '/chatgpt' || pathname === '/alerts';
   
-  // Determine colors based on mode
-  const modeActiveColor = mode === 'emergency' ? '#53B175' : '#2563eb'
-  const modeCenterColor = mode === 'emergency' ? '#c1121f' : '#2563eb'
+  // Use pathname-based detection if mode from context doesn't match current area
+  const actualMode: AppMode = isInForecastArea ? 'forecast' : isInEmergencyArea ? 'emergency' : mode;
+  
+  // Choose navigation items based on actual mode
+  const navItems = actualMode === 'forecast' ? forecastNavItems : emergencyNavItems;
+  
+  // Determine colors based on actual mode
+  const modeActiveColor = actualMode === 'emergency' ? '#53B175' : '#2563eb'
+  const modeCenterColor = actualMode === 'emergency' ? '#c1121f' : '#2563eb'
   
   return (
   <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center border-t px-1 py-1 md:hidden shadow-lg" style={{ background: bgColor }}>
@@ -48,7 +55,7 @@ export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColo
         const Icon = item.icon;
 
         // Make SOS (Emergency) or AI (Forecast) the centered, prominent button
-        const isCenterButton = (mode === 'emergency' && item.name === 'SOS') || (mode === 'forecast' && item.name === 'AI');
+        const isCenterButton = (actualMode === 'emergency' && item.name === 'SOS') || (actualMode === 'forecast' && item.name === 'AI');
         
         if (isCenterButton) {
           return (

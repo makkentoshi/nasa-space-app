@@ -255,7 +255,8 @@ function extractCities(text: string): string[] {
     }
   }
   
-  return [...new Set(cities)]; // Remove duplicates
+  // Remove duplicates using Array.from()
+  return Array.from(new Set(cities));
 }
 
 /**
