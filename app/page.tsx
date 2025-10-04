@@ -176,8 +176,8 @@ export default function HomePage() {
 
       case 'alerts':
         return (
-          <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-heavy">Active Alerts</h2>
+          <div className="space-y-6 animate-fadeIn">
+            <h2 className="text-2xl font-bold text-heavy mb-2">Active Alerts</h2>
             {[1, 2, 3].map((i) => (
               <Card key={i} className="border-l-4 border-l-red-500">
                 <CardContent className="pt-6">
@@ -203,8 +203,8 @@ export default function HomePage() {
 
       case 'nearby':
         return (
-          <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-heavy">Nearby Resources</h2>
+          <div className="space-y-6 animate-fadeIn">
+            <h2 className="text-2xl font-bold text-heavy mb-2">Nearby Resources</h2>
             {['🏥 Emergency Shelters', '🚑 Medical Centers', '🚒 Fire Stations', '👮 Police Stations'].map((resource, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
@@ -226,8 +226,8 @@ export default function HomePage() {
 
       case 'notifications':
         return (
-          <div className="space-y-3 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-heavy mb-4">Notifications</h2>
+          <div className="space-y-4 animate-fadeIn">
+            <h2 className="text-2xl font-bold text-heavy mb-6">Notifications</h2>
             {[
               { icon: '⚠️', title: 'Severe Weather Alert', time: '5 min ago' },
               { icon: '🌊', title: 'Flood Warning Update', time: '1 hour ago' },
@@ -256,9 +256,9 @@ export default function HomePage() {
 
   return (
     <AppShell>
-      <div className="pb-24 px-4 pt-4 bg-[#F8FAF8] min-h-screen">
+      <div className="pb-24 px-4 pt-6 bg-[#F8FAF8] min-h-screen space-y-4">
         {/* Header */}
-        <Card className="py-4 px-4 flex flex-col items-center mb-4">
+        <Card className="py-6 px-6 flex flex-col items-center">
           <div className="flex items-center gap-3 mb-2">
             <svg className="h-8 w-8 text-[#53B175]" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L4 9v12h16V9l-8-7zm0 2.828L18 10v9h-5v-6h-2v6H6v-9l6-5.172z"/>
@@ -271,12 +271,14 @@ export default function HomePage() {
         </Card>
 
         {/* Emergency/Forecast Toggle */}
-        <div className="mb-4 flex justify-center items-center w-full">
+        <div className="flex justify-center items-center w-full">
           <ModeSelector currentMode={mode} onModeChange={setMode} />
         </div>
 
         {/* Tab Content */}
-        {mode === 'forecast' ? renderForecastContent() : renderEmergencyContent()}
+        <div className="mt-4">
+          {mode === 'forecast' ? renderForecastContent() : renderEmergencyContent()}
+        </div>
 
       </div>
 
