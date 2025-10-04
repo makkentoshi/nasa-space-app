@@ -18,7 +18,7 @@ import ThresholdInput from '@/components/ThresholdInput';
 import StatisticsChart from '@/components/StatisticsChart';
 import ExportButtons from '@/components/ExportButtons';
 
-const Map = dynamic(() => import('@/components/Map'), { ssr: false });
+const Map = dynamic(() => import('@/components/WeatherMap'), { ssr: false });
 const EmergencyMap = dynamic(() => import('@/components/EmergencyMap'), { ssr: false });
 const WeatherAnimation = dynamic(() => import('@/components/WeatherAnimation'), { ssr: false });
 const ComfortIndex = dynamic(() => import('@/components/ComfortIndex'), { ssr: false });
