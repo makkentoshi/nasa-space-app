@@ -11,10 +11,10 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { format: string } }
+  { params }: { params: Promise<{ format: string }> }
 ) {
   try {
-    const format = params.format;
+    const { format } = await params;
     const body = await request.json();
 
     // Validate format
@@ -60,7 +60,7 @@ export async function POST(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error(`Error in /api/export/${params.format}:`, error);
+    console.error(`Error in /api/export:`, error);
     return NextResponse.json(
       { detail: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
@@ -74,9 +74,10 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { format: string } }
+  { params }: { params: Promise<{ format: string }> }
 ) {
   try {
+    await params; // Consume params
     const searchParams = request.nextUrl.searchParams;
     const fileId = searchParams.get('fileId');
 

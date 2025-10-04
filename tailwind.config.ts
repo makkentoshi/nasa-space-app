@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -44,17 +45,15 @@ const config: Config = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
-              // Custom PWA palette
-              pwa: {
-                green: '#53B175',
-                bg1: '#F2F3F2',
-                bg2: '#FCFCFC',
-                bg3: '#FEFEFE',
-                bg4: '#FFF9FF',
-                dark: '#37393F',
-              },
-              // For dark mode backgrounds
-              darkbg: '#37393F',
+          pwa: {
+            green: '#53B175',
+            bg1: '#F2F3F2',
+            bg2: '#FCFCFC',
+            bg3: '#FEFEFE',
+            bg4: '#FFF9FF',
+            dark: '#37393F',
+          },
+          darkbg: '#37393F',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',

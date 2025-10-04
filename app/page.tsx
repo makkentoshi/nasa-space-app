@@ -3,27 +3,27 @@
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import Link from 'next/link';
-import { AppShell } from '@/app/components/layout/AppShell';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
-import { Badge } from '@/app/components/ui/badge';
-import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import ModeSelector from '@/app/components/ModeSelector';
-import BottomBar, { type ForecastTab } from '@/app/components/BottomBar';
-import EmergencyBottomBar, { type EmergencyTab } from '@/app/components/EmergencyBottomBar';
+import { AppShell } from '@/components/layout/AppShell';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import ModeSelector from '@/components/ModeSelector';
+import BottomBar, { type ForecastTab } from '@/components/BottomBar';
+import EmergencyBottomBar, { type EmergencyTab } from '@/components/EmergencyBottomBar';
 import { Home, AlertTriangle, MapPin, MessageCircle, Users, Waves, Flame, Earth, Wind } from 'lucide-react';
 import { useForecast } from '@/app/contexts/ForecastContext';
-import DaySelector from '@/app/components/DaySelector';
-import ThresholdInput from '@/app/components/ThresholdInput';
-import StatisticsChart from '@/app/components/StatisticsChart';
-import ExportButtons from '@/app/components/ExportButtons';
+import DaySelector from '@/components/DaySelector';
+import ThresholdInput from '@/components/ThresholdInput';
+import StatisticsChart from '@/components/StatisticsChart';
+import ExportButtons from '@/components/ExportButtons';
 
-const Map = dynamic(() => import('@/app/components/Map'), { ssr: false });
-const EmergencyMap = dynamic(() => import('@/app/components/EmergencyMap'), { ssr: false });
-const WeatherAnimation = dynamic(() => import('@/app/components/WeatherAnimation'), { ssr: false });
-const ComfortIndex = dynamic(() => import('@/app/components/ComfortIndex'), { ssr: false });
-const RouteAssistant = dynamic(() => import('@/app/components/RouteAssistant'), { ssr: false });
-const AIChat = dynamic(() => import('@/app/components/AIChat'), { ssr: false });
+const Map = dynamic(() => import('@/components/Map'), { ssr: false });
+const EmergencyMap = dynamic(() => import('@/components/EmergencyMap'), { ssr: false });
+const WeatherAnimation = dynamic(() => import('@/components/WeatherAnimation'), { ssr: false });
+const ComfortIndex = dynamic(() => import('@/components/ComfortIndex'), { ssr: false });
+const RouteAssistant = dynamic(() => import('@/components/RouteAssistant'), { ssr: false });
+const AIChat = dynamic(() => import('@/components/AIChat'), { ssr: false });
 
 type AppMode = 'forecast' | 'emergency';
 

@@ -7,16 +7,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Alert, AlertDescription } from "@/app/components/ui/alert";
-import { AppShell } from "@/app/components/layout/AppShell";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AppShell } from "@/components/layout/AppShell";
 import { Home, AlertTriangle, MapPin, MessageCircle, Users } from "lucide-react";
 import { Waves, Flame, Earth, Wind } from "lucide-react";
 import { useAppStore } from "@/app/lib/store/useAppStore";
 import Link from "next/link";
-import { PushNotificationManager } from "../components/PushNotificationManager";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 interface DashboardAlert {
   id: string;
