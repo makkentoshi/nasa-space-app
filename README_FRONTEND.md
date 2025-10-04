@@ -1,3 +1,4 @@
+# AI Generated README
 # resQ - Forecast Mode (Frontend)
 
 Climate forecast PWA application for NASA Space Apps Challenge 2025: "Will It Rain On My Parade?"
