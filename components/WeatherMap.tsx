@@ -299,7 +299,7 @@ export default function WeatherMap({
   
   // wttr.in third-party weather validation
   const [wttrSnapshot, setWttrSnapshot] = useState<{
-    current?: { temperatureC?: number; humidity?: number; windSpeed?: number }
+    current?: { temperatureC?: number; humidity?: number; windSpeed?: number; precipitation?: number }
     error?: string
   } | null>(null)
   
@@ -515,7 +515,8 @@ export default function WeatherMap({
           current: {
             temperatureC: parseFloat(current.temp_C),
             humidity: parseFloat(current.humidity),
-            windSpeed: parseFloat(current.windspeedKmph) / 3.6 // convert to m/s
+            windSpeed: parseFloat(current.windspeedKmph) / 3.6, // convert to m/s
+            precipitation: parseFloat(current.precipMM) || 0 // precipitation in mm
           }
         })
       }
@@ -1249,7 +1250,12 @@ export default function WeatherMap({
                 <span>Display: {displayMode}</span>
                 <span>Variable: {currentVariable?.label}</span>
                 {wttrSnapshot?.current && (
-                  <span>wttr.in: {wttrSnapshot.current.temperatureC ?? '–'}°C • {wttrSnapshot.current.humidity ?? '–'}% RH</span>
+                  <span>
+                    wttr.in: {wttrSnapshot.current.temperatureC ?? '–'}°C • 
+                    {wttrSnapshot.current.precipitation !== undefined ? `${wttrSnapshot.current.precipitation.toFixed(1)}mm rain` : '0mm'} • 
+                    {wttrSnapshot.current.windSpeed?.toFixed(1) ?? '–'} m/s wind • 
+                    {wttrSnapshot.current.humidity ?? '–'}% RH
+                  </span>
                 )}
                 <span>Animation: {isAnimating ? `running (${Math.round((2000 - animationSpeed) / 20)}% speed)` : 'stopped'}</span>
               </div>

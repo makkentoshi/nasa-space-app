@@ -30,6 +30,7 @@ interface DashboardAlert {
 export default function DashboardPage() {
   const { user } = useUser();
   const location = useAppStore((state) => state.location.location);
+  const locationName = useAppStore((state) => state.location.locationName);
   const isInEmergency = useAppStore((state) => state.isInEmergency);
 
   const { data: nearbyAlerts, isLoading } = useQuery({
@@ -210,8 +211,11 @@ export default function DashboardPage() {
           </div>
           {location ? (
             <div className="space-y-2">
-              <p className="text-sm text-gray-500">
-                Current location: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+              <p className="text-sm text-gray-900 font-medium">
+                {locationName || 'Current Location'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {location.lat.toFixed(4)}°, {location.lng.toFixed(4)}°
               </p>
               <span className="inline-block px-3 py-1 rounded-full bg-[#53B175] text-white text-xs font-semibold">Location tracking active</span>
             </div>
