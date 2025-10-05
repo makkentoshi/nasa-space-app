@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react'
 import BackButton from '@/components/ui/BackButton'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { reverseGeocode } from '@/lib/geocoding'
 
 // Dynamically import map to avoid SSR issues
 const MapContainer = dynamic(
@@ -113,6 +114,7 @@ const mockFamily: FamilyMember[] = [
 export default function EmergencyMapPage() {
   const router = useRouter()
   const [userLocation, setUserLocation] = useState({ lat: 52.2873, lng: 76.9674 }) // Pavlodar
+  const [locationName, setLocationName] = useState<string>('Loading location...')
   const [notificationRadius, setNotificationRadius] = useState(50000) // 50km in meters
   const [family, setFamily] = useState<FamilyMember[]>(mockFamily)
   const [emergencyZones, setEmergencyZones] = useState<EmergencyZone[]>([])
@@ -123,16 +125,22 @@ export default function EmergencyMapPage() {
     // Get user's current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
+        async (position) => {
+          const lat = position.coords.latitude
+          const lng = position.coords.longitude
+          setUserLocation({ lat, lng })
+          
+          // Get city and country name
+          const name = await reverseGeocode(lat, lng)
+          setLocationName(name)
         },
         (error) => {
           console.error('Geolocation error:', error)
+          setLocationName('Pavlodar, Kazakhstan')
         }
       )
+    } else {
+      setLocationName('Pavlodar, Kazakhstan')
     }
 
     // Fetch emergency data
@@ -203,65 +211,67 @@ export default function EmergencyMapPage() {
 
   return (
     <AppShell>
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-900 dark:to-red-950 pb-20">
+      <div className="min-h-screen bg-pwa-bg2 pb-20">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header */}
-          <div className="mb-4 relative">
+          <div className="mb-4 relative pt-4">
             <BackButton onClick={() => router.back()} />
-            <PageHeader
-              title="Emergency Map"
-              subtitle="Track family locations and nearby emergency zones in real-time"
-              icon={<Shield className="h-12 w-12 text-red-600 dark:text-red-400" />}
-              bgColor="transparent"
-              textColor="#dc2626"
-            />
+            <div className="rounded-2xl shadow-sm bg-white py-4 px-4 flex flex-col items-center mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <Shield className="h-8 w-8 text-[#53B175]" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Emergency Map</h1>
+              <p className="text-sm text-gray-600 text-center max-w-md">
+                Track family locations and nearby emergency zones in real-time
+              </p>
+            </div>
           </div>
 
           {/* Statistics */}
           <div className="grid grid-cols-4 gap-3 mb-4">
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <Card className="rounded-2xl shadow-sm bg-white">
               <CardContent className="p-3 text-center">
-                <Users className="w-5 h-5 mx-auto mb-1 text-blue-600" />
-                <div className="text-xl font-bold text-gray-900 dark:text-white">
+                <Users className="w-5 h-5 mx-auto mb-1 text-[#53B175]" />
+                <div className="text-xl font-bold text-gray-900">
                   {family.length}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600">
                   Tracked
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <Card className="rounded-2xl shadow-sm bg-white">
               <CardContent className="p-3 text-center">
-                <Shield className="w-5 h-5 mx-auto mb-1 text-green-600" />
-                <div className="text-xl font-bold text-green-600">
+                <Shield className="w-5 h-5 mx-auto mb-1 text-[#53B175]" />
+                <div className="text-xl font-bold text-[#53B175]">
                   {safeCount}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600">
                   Safe
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <Card className="rounded-2xl shadow-sm bg-white">
               <CardContent className="p-3 text-center">
-                <AlertTriangle className="w-5 h-5 mx-auto mb-1 text-red-600" />
-                <div className="text-xl font-bold text-red-600">
+                <AlertTriangle className="w-5 h-5 mx-auto mb-1 text-gray-900" />
+                <div className="text-xl font-bold text-gray-900">
                   {atRiskCount}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600">
                   At Risk
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <Card className="rounded-2xl shadow-sm bg-white">
               <CardContent className="p-3 text-center">
-                <Waves className="w-5 h-5 mx-auto mb-1 text-orange-600" />
-                <div className="text-xl font-bold text-orange-600">
+                <Waves className="w-5 h-5 mx-auto mb-1 text-gray-900" />
+                <div className="text-xl font-bold text-gray-900">
                   {emergencyZones.length}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600">
                   Zones
                 </div>
               </CardContent>
@@ -269,14 +279,16 @@ export default function EmergencyMapPage() {
           </div>
 
           {/* Notification Radius Control */}
-          <Card className="mb-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="mb-4 rounded-2xl shadow-sm bg-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Radio className="w-5 h-5 text-purple-600" />
-                  <span className="font-semibold">Notification Radius</span>
+                  <Radio className="w-5 h-5 text-[#53B175]" />
+                  <span className="font-semibold text-gray-900">Notification Radius</span>
                 </div>
-                <Badge variant="outline">{(notificationRadius / 1000).toFixed(0)} km</Badge>
+                <Badge variant="outline" className="border-[#53B175] text-[#53B175]">
+                  {(notificationRadius / 1000).toFixed(0)} km
+                </Badge>
               </div>
               <input
                 type="range"
@@ -285,16 +297,37 @@ export default function EmergencyMapPage() {
                 step="10000"
                 value={notificationRadius}
                 onChange={(e) => setNotificationRadius(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#53B175]"
+                style={{
+                  background: `linear-gradient(to right, #53B175 0%, #53B175 ${((notificationRadius - 10000) / 190000) * 100}%, #e5e7eb ${((notificationRadius - 10000) / 190000) * 100}%, #e5e7eb 100%)`
+                }}
               />
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-xs text-gray-600 mt-2">
                 You'll receive alerts for emergencies within this radius
               </p>
             </CardContent>
           </Card>
 
+          {/* Location Status */}
+          <Card className="mb-4 rounded-2xl shadow-sm bg-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="w-5 h-5 text-[#53B175]" />
+                <span className="font-semibold text-gray-900">Location Status</span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-900">
+                  <span className="font-medium">Coordinates:</span> {userLocation.lat.toFixed(4)}°, {userLocation.lng.toFixed(4)}°
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Location:</span> {locationName}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Map */}
-          <Card className="mb-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden">
+          <Card className="mb-4 rounded-2xl shadow-sm bg-white overflow-hidden">
             <CardContent className="p-0">
               {mapReady && typeof window !== 'undefined' && (
                 <div style={{ height: '500px', width: '100%' }}>
@@ -383,23 +416,23 @@ export default function EmergencyMapPage() {
           </Card>
 
           {/* Family List */}
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="rounded-2xl shadow-sm bg-white">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                <Users className="w-5 h-5" />
+              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2 text-gray-900">
+                <Users className="w-5 h-5 text-[#53B175]" />
                 Family Members
               </h3>
               <div className="space-y-3">
                 {family.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${getStatusColor(member.status)}`} />
                       <div>
-                        <div className="font-semibold">{member.name}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="font-semibold text-gray-900">{member.name}</div>
+                        <div className="text-sm text-gray-600">
                           {member.relation} • {member.lastSeen}
                         </div>
                       </div>
@@ -408,6 +441,7 @@ export default function EmergencyMapPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-[#53B175] text-[#53B175] hover:bg-[#53B175] hover:text-white"
                         onClick={() => window.open(`tel:${member.phone}`)}
                       >
                         <Phone className="w-4 h-4" />
@@ -415,6 +449,7 @@ export default function EmergencyMapPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
                         onClick={() => {
                           // Center map on member
                           setUserLocation({

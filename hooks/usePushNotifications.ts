@@ -31,10 +31,16 @@ export function usePushNotifications() {
     if (!isSupported || !user || permission !== 'granted') return false
 
     try {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) {
+        console.error('VAPID public key is not configured')
+        return false
+      }
+      
       const registration = await navigator.serviceWorker.ready
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+        applicationServerKey: urlBase64ToUint8Array(vapidKey)
       })
 
       // Send subscription to server
@@ -112,7 +118,13 @@ export function usePushNotifications() {
 }
 
 // Helper function to convert VAPID key
-function urlBase64ToUint8Array(base64String: string) {
+function urlBase64ToUint8Array(base64String: string | undefined) {
+  if (!base64String) {
+    console.warn('VAPID key is not configured. Push notifications will not work.')
+    // Return empty array as fallback
+    return new Uint8Array(0)
+  }
+  
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding)
     .replace(/-/g, '+')

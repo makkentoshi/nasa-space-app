@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/BottomBar';
 import { useAppMode, type AppMode } from '@/components/ui/ModeToggle';
@@ -83,6 +84,9 @@ export function AppShell({ children }: AppShellProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0">
+                <VisuallyHidden.Root>
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                </VisuallyHidden.Root>
                 <nav className="flex flex-col gap-2 p-4">
                   {navigation.map((item) => (
                     <Link

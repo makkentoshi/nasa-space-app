@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { AppShell } from '@/components/layout/AppShell'
+import QRCode from 'qrcode'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -26,7 +27,13 @@ import {
   User,
   MapPin,
   Zap,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  QrCode,
+  Download,
+  Phone,
+  Heart,
+  UserPlus,
+  Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import BackButton from '@/components/ui/BackButton'
@@ -83,12 +90,40 @@ const defaultSettings: NotificationSettings = {
   quietEnd: '07:00'
 }
 
+interface EmergencyContact {
+  id: string
+  name: string
+  phone: string
+  relationship: string
+}
+
+interface EmergencyData {
+  bloodType: string
+  passportNumber: string
+  medicalConditions: string
+  allergies: string
+  medications: string
+  contacts: EmergencyContact[]
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const { user } = useUser()
   const [settings, setSettings] = useState<NotificationSettings>(defaultSettings)
   const [isSaving, setIsSaving] = useState(false)
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default')
+  
+  // Emergency QR Code state
+  const [emergencyData, setEmergencyData] = useState<EmergencyData>({
+    bloodType: '',
+    passportNumber: '',
+    medicalConditions: '',
+    allergies: '',
+    medications: '',
+    contacts: []
+  })
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('')
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     // Load saved settings from localStorage
@@ -101,7 +136,91 @@ export default function SettingsPage() {
     if ('Notification' in window) {
       setPermissionStatus(Notification.permission)
     }
+    
+    // Load emergency data
+    const savedEmergencyData = localStorage.getItem('emergency-data')
+    if (savedEmergencyData) {
+      const data = JSON.parse(savedEmergencyData)
+      setEmergencyData(data)
+      generateQRCode(data)
+    }
   }, [])
+  
+  const generateQRCode = async (data: EmergencyData) => {
+    try {
+      // Create a structured JSON with all emergency info
+      const qrData = {
+        type: 'EMERGENCY_CONTACT',
+        name: user?.fullName || 'User',
+        bloodType: data.bloodType,
+        passport: data.passportNumber,
+        medical: data.medicalConditions,
+        allergies: data.allergies,
+        medications: data.medications,
+        contacts: data.contacts,
+        generatedAt: new Date().toISOString()
+      }
+      
+      const dataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+      
+      setQrCodeDataUrl(dataUrl)
+    } catch (error) {
+      console.error('Failed to generate QR code:', error)
+      toast.error('Failed to generate QR code')
+    }
+  }
+  
+  const saveEmergencyData = () => {
+    localStorage.setItem('emergency-data', JSON.stringify(emergencyData))
+    generateQRCode(emergencyData)
+    toast.success('Emergency data saved successfully!')
+  }
+  
+  const addEmergencyContact = () => {
+    const newContact: EmergencyContact = {
+      id: Date.now().toString(),
+      name: '',
+      phone: '',
+      relationship: ''
+    }
+    setEmergencyData(prev => ({
+      ...prev,
+      contacts: [...prev.contacts, newContact]
+    }))
+  }
+  
+  const removeEmergencyContact = (id: string) => {
+    setEmergencyData(prev => ({
+      ...prev,
+      contacts: prev.contacts.filter(c => c.id !== id)
+    }))
+  }
+  
+  const updateEmergencyContact = (id: string, field: keyof EmergencyContact, value: string) => {
+    setEmergencyData(prev => ({
+      ...prev,
+      contacts: prev.contacts.map(c => 
+        c.id === id ? { ...c, [field]: value } : c
+      )
+    }))
+  }
+  
+  const downloadQRCode = () => {
+    if (!qrCodeDataUrl) return
+    
+    const link = document.createElement('a')
+    link.download = 'emergency-qr-code.png'
+    link.href = qrCodeDataUrl
+    link.click()
+    toast.success('QR Code downloaded!')
+  }
 
   const updateSetting = <K extends keyof NotificationSettings>(
     key: K,
@@ -222,7 +341,7 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="notifications" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="notifications">
               <Bell className="h-4 w-4 mr-2" />
               Notifications
@@ -230,6 +349,10 @@ export default function SettingsPage() {
             <TabsTrigger value="ai-briefing">
               <Brain className="h-4 w-4 mr-2" />
               AI Briefing
+            </TabsTrigger>
+            <TabsTrigger value="emergency">
+              <Shield className="h-4 w-4 mr-2" />
+              Emergency
             </TabsTrigger>
             <TabsTrigger value="advanced">
               <Zap className="h-4 w-4 mr-2" />
@@ -555,6 +678,209 @@ export default function SettingsPage() {
                     disabled={!settings.pushEnabled}
                   />
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Emergency QR Code Tab */}
+          <TabsContent value="emergency" className="space-y-4">
+            {/* QR Code Display */}
+            <Card className="rounded-2xl shadow-sm border-red-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-900">Emergency QR Code</span>
+                </CardTitle>
+                <CardDescription>
+                  First responders can scan this QR code to access your medical information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {qrCodeDataUrl ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+                      <img 
+                        src={qrCodeDataUrl} 
+                        alt="Emergency QR Code" 
+                        className="w-64 h-64"
+                      />
+                    </div>
+                    <div className="flex gap-2 w-full">
+                      <Button 
+                        onClick={downloadQRCode}
+                        className="flex-1 bg-[#53B175] hover:bg-[#4a9c65]"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          if (navigator.share && qrCodeDataUrl) {
+                            fetch(qrCodeDataUrl)
+                              .then(res => res.blob())
+                              .then(blob => {
+                                const file = new File([blob], 'emergency-qr.png', { type: 'image/png' })
+                                navigator.share({
+                                  title: 'Emergency QR Code',
+                                  text: 'My emergency contact information',
+                                  files: [file]
+                                })
+                              })
+                          }
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Share
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Print this QR code and keep it in your wallet or phone case
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <QrCode className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                    <p>Fill in your emergency information below to generate QR code</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Medical Information */}
+            <Card className="rounded-2xl shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-900">Medical Information</span>
+                </CardTitle>
+                <CardDescription>
+                  Critical information for first responders
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Blood Type</Label>
+                  <Select
+                    value={emergencyData.bloodType}
+                    onValueChange={(value) => setEmergencyData(prev => ({ ...prev, bloodType: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select blood type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A+">A+</SelectItem>
+                      <SelectItem value="A-">A-</SelectItem>
+                      <SelectItem value="B+">B+</SelectItem>
+                      <SelectItem value="B-">B-</SelectItem>
+                      <SelectItem value="AB+">AB+</SelectItem>
+                      <SelectItem value="AB-">AB-</SelectItem>
+                      <SelectItem value="O+">O+</SelectItem>
+                      <SelectItem value="O-">O-</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Passport Number</Label>
+                  <Input
+                    placeholder="e.g., N12345678"
+                    value={emergencyData.passportNumber}
+                    onChange={(e) => setEmergencyData(prev => ({ ...prev, passportNumber: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Medical Conditions</Label>
+                  <Input
+                    placeholder="e.g., Diabetes, Asthma"
+                    value={emergencyData.medicalConditions}
+                    onChange={(e) => setEmergencyData(prev => ({ ...prev, medicalConditions: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Allergies</Label>
+                  <Input
+                    placeholder="e.g., Penicillin, Peanuts"
+                    value={emergencyData.allergies}
+                    onChange={(e) => setEmergencyData(prev => ({ ...prev, allergies: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Current Medications</Label>
+                  <Input
+                    placeholder="e.g., Insulin, Aspirin"
+                    value={emergencyData.medications}
+                    onChange={(e) => setEmergencyData(prev => ({ ...prev, medications: e.target.value }))}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Emergency Contacts */}
+            <Card className="rounded-2xl shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5 text-blue-600" />
+                  <span className="text-gray-900">Emergency Contacts</span>
+                </CardTitle>
+                <CardDescription>
+                  People to contact in case of emergency
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {emergencyData.contacts.map((contact, index) => (
+                  <div key={contact.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Contact {index + 1}</Label>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeEmergencyContact(contact.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Name"
+                        value={contact.name}
+                        onChange={(e) => updateEmergencyContact(contact.id, 'name', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Phone (e.g., +77771234567)"
+                        value={contact.phone}
+                        onChange={(e) => updateEmergencyContact(contact.id, 'phone', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Relationship (e.g., Spouse, Parent)"
+                        value={contact.relationship}
+                        onChange={(e) => updateEmergencyContact(contact.id, 'relationship', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  onClick={addEmergencyContact}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Emergency Contact
+                </Button>
+
+                <Button
+                  onClick={saveEmergencyData}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save & Generate QR Code
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
