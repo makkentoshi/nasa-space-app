@@ -486,28 +486,17 @@ export default function WeatherMap({
   // Fetch wttr.in validation data
   const fetchWttrData = useCallback(async () => {
     try {
-      // wttr.in format: https://wttr.in/{location}?format=j1
-      // Use city name for better results (e.g., Astana)
-      const cityLookup: Record<string, string> = {
-        '51.2,71.4': 'Astana',
-        '51.1,71.5': 'Astana',
-        '40.7,-74.0': 'New York'
-      }
-      
-      const coordKey = `${selectedLocation.lat.toFixed(1)},${selectedLocation.lng.toFixed(1)}`
-      const location = cityLookup[coordKey] || `${selectedLocation.lat},${selectedLocation.lng}`
-      
-      const response = await fetch(`https://wttr.in/${location}?format=j1`)
+      // Use our API proxy to avoid CORS issues
+      const response = await fetch(`/api/weather/wttr?lat=${selectedLocation.lat}&lng=${selectedLocation.lng}`)
       if (!response.ok) throw new Error('wttr.in fetch failed')
       
-      const text = await response.text()
+      const wttrData = await response.json()
       
-      // Check if response is valid JSON (wttr.in sometimes returns error messages)
-      if (text.startsWith('Unknown') || text.startsWith('ERROR')) {
-        throw new Error('wttr.in returned error message')
+      // Check if response contains error
+      if (wttrData.error) {
+        throw new Error(wttrData.error)
       }
       
-      const wttrData = JSON.parse(text)
       const current = wttrData.current_condition?.[0]
       
       if (current) {
@@ -564,39 +553,34 @@ export default function WeatherMap({
           // Add delay between requests (wttr.in rate limit)
           if (i > 0) await new Promise(resolve => setTimeout(resolve, 100))
           
-          const response = await fetch(`https://wttr.in/${cell.lat.toFixed(2)},${cell.lng.toFixed(2)}?format=j1`)
+          // Use our API proxy to avoid CORS issues
+          const response = await fetch(`/api/weather/wttr?lat=${cell.lat.toFixed(2)}&lng=${cell.lng.toFixed(2)}`)
           
           if (response.ok) {
-            const text = await response.text()
+            const data = await response.json()
             
-            // Check if response is actually JSON (wttr.in sometimes returns error messages)
-            if (!text.startsWith('Unknown') && !text.startsWith('ERROR')) {
-              try {
-                const data = JSON.parse(text)
-                const current = data.current_condition?.[0]
-                
-                if (current) {
-                  gridWithData.push({
-                    ...cell,
-                    data: {
-                      temperature: parseFloat(current.temp_C) || 0,
-                      humidity: parseFloat(current.humidity) || 0,
-                      wind_speed: parseFloat(current.windspeedKmph) / 3.6 || 0,
-                      precipitation: parseFloat(current.precipMM) || 0,
-                      cloud_cover: parseFloat(current.cloudcover) || 0,
-                      uv_index: parseFloat(current.uvIndex) || 0
-                    }
-                  })
-                  continue
-                }
-              } catch (parseErr) {
-                console.warn('🌐 [Wttr.in] JSON parse error for cell:', cell)
-                // Fall through to add fallback data
+            // Check if response contains error
+            if (!data.error) {
+              const current = data.current_condition?.[0]
+              
+              if (current) {
+                gridWithData.push({
+                  ...cell,
+                  data: {
+                    temperature: parseFloat(current.temp_C) || 0,
+                    humidity: parseFloat(current.humidity) || 0,
+                    wind_speed: parseFloat(current.windspeedKmph) / 3.6 || 0,
+                    precipitation: parseFloat(current.precipMM) || 0,
+                    cloud_cover: parseFloat(current.cloudcover) || 0,
+                    uv_index: parseFloat(current.uvIndex) || 0
+                  }
+                })
+                continue
               }
             }
-            // If we reach here, wttr.in returned an error or invalid data
-            // Add cell with fallback data so grid isn't empty
           }
+          // If we reach here, wttr.in returned an error or invalid data
+          // Continue to fallback data below
         } catch (err) {
           console.warn('🌐 [Wttr.in] Failed to fetch cell:', cell)
         }

@@ -60,11 +60,14 @@ export class AlertManager {
   }
 
   private initializeSources() {
-    const adapter = process.env.ALERTS_ADAPTER || 'mock'
+    const adapter = process.env.ALERTS_ADAPTER || 'usgs'
     
     switch (adapter) {
-      case 'mock':
+      case 'usgs':
       default:
+        this.sources.push(new UsgsAdapter())
+        break
+      case 'mock':
         this.sources.push(new MockAlertAdapter())
         break
       case 'nasa-live':
@@ -73,17 +76,13 @@ export class AlertManager {
       case 'firms':
         this.sources.push(new FirmsAdapter())
         break
-      case 'usgs':
-        this.sources.push(new UsgsAdapter())
-        break
       case 'gdacs':
         this.sources.push(new GdacsAdapter())
         break
       case 'all':
-        this.sources.push(new MockAlertAdapter())
+        this.sources.push(new UsgsAdapter())
         this.sources.push(new NasaEonetAdapter())
         this.sources.push(new FirmsAdapter())
-        this.sources.push(new UsgsAdapter())
         this.sources.push(new GdacsAdapter())
         break
       // Add other adapters here when implemented
