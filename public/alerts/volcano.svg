@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="volcanoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c2d12;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#292524;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="lavaGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f97316;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:0.6" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="#18181b"/>
+  
+  <!-- Volcano mountain -->
+  <polygon points="100,30 160,150 40,150" fill="url(#volcanoGradient)" stroke="#44403c" stroke-width="2"/>
+  
+  <!-- Crater -->
+  <ellipse cx="100" cy="35" rx="15" ry="8" fill="#1c1917"/>
+  
+  <!-- Lava flows -->
+  <path d="M 85 60 Q 70 80, 60 100 L 55 150" 
+        stroke="#ef4444" stroke-width="4" fill="none" opacity="0.8"/>
+  <path d="M 100 50 Q 100 80, 100 120 L 100 150" 
+        stroke="#f97316" stroke-width="5" fill="none" opacity="0.9"/>
+  <path d="M 115 60 Q 130 80, 140 100 L 145 150" 
+        stroke="#dc2626" stroke-width="4" fill="none" opacity="0.8"/>
+  
+  <!-- Lava glow at crater -->
+  <ellipse cx="100" cy="35" rx="20" ry="10" fill="url(#lavaGlow)" opacity="0.6"/>
+  
+  <!-- Smoke/ash clouds -->
+  <circle cx="100" cy="15" r="12" fill="#52525b" opacity="0.7"/>
+  <circle cx="85" cy="10" r="10" fill="#71717a" opacity="0.6"/>
+  <circle cx="115" cy="12" r="10" fill="#71717a" opacity="0.6"/>
+  <circle cx="100" cy="5" r="8" fill="#a1a1aa" opacity="0.5"/>
+  
+  <!-- Sparks/embers -->
+  <circle cx="95" cy="45" r="2" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="105" cy="48" r="2" fill="#f59e0b" opacity="0.9"/>
+  <circle cx="90" cy="55" r="1.5" fill="#fbbf24" opacity="0.8"/>
+  <circle cx="110" cy="52" r="1.5" fill="#f97316" opacity="0.8"/>
+  <circle cx="98" cy="40" r="1" fill="#fef08a" opacity="0.9"/>
+  
+  <!-- Ground -->
+  <rect x="0" y="150" width="200" height="50" fill="#292524"/>
+  
+  <!-- Warning sign -->
+  <polygon points="30,165 45,190 15,190" fill="#fbbf24" stroke="#f59e0b" stroke-width="2"/>
+  <text x="30" y="187" font-size="18" font-weight="bold" fill="#78350f" text-anchor="middle">!</text>
+</svg>

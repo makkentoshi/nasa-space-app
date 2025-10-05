@@ -72,14 +72,14 @@ export default function AlertsPage() {
 
   const getAlertImage = (type: string) => {
     const imageMap: Record<string, string> = {
-      'tsunami': '/alerts/tsunami.jpg',
-      'earthquake': '/alerts/earthquake.jpg',
-      'wildfire': '/alerts/fire.jpg',
-      'hurricane': '/alerts/hurricane.jpg',
-      'flood': '/alerts/flood.jpg',
-      'volcano': '/alerts/volcano.jpg'
+      'tsunami': '/alerts/tsunami.svg',
+      'earthquake': '/alerts/earthquake.svg',
+      'wildfire': '/alerts/fire.svg',
+      'hurricane': '/alerts/hurricane.svg',
+      'flood': '/alerts/flood.svg',
+      'volcano': '/alerts/volcano.svg'
     }
-    return imageMap[type.toLowerCase()] || '/icons/icon-192.svg'
+    return imageMap[type.toLowerCase()] || '/globe.svg'
   }
 
   const alertTypes = [

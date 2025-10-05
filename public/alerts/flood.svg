@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="floodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="#0f172a"/>
+  
+  <!-- Water waves -->
+  <path d="M0 120 Q 25 110, 50 120 T 100 120 T 150 120 T 200 120 L 200 200 L 0 200 Z" 
+        fill="url(#floodGradient)" opacity="0.7"/>
+  <path d="M0 140 Q 25 130, 50 140 T 100 140 T 150 140 T 200 140 L 200 200 L 0 200 Z" 
+        fill="url(#floodGradient)" opacity="0.5"/>
+  <path d="M0 160 Q 25 150, 50 160 T 100 160 T 150 160 T 200 160 L 200 200 L 0 200 Z" 
+        fill="url(#floodGradient)" opacity="0.3"/>
+  
+  <!-- House partially submerged -->
+  <rect x="70" y="80" width="60" height="50" fill="#475569" stroke="#64748b" stroke-width="2"/>
+  <polygon points="100,60 130,80 70,80" fill="#ef4444" stroke="#dc2626" stroke-width="2"/>
+  <rect x="85" y="100" width="12" height="15" fill="#1e293b"/>
+  <rect x="103" y="100" width="12" height="15" fill="#1e293b"/>
+  
+  <!-- Rain drops -->
+  <circle cx="30" cy="40" r="2" fill="#60a5fa" opacity="0.6"/>
+  <circle cx="50" cy="60" r="2" fill="#60a5fa" opacity="0.6"/>
+  <circle cx="80" cy="30" r="2" fill="#60a5fa" opacity="0.6"/>
+  <circle cx="120" cy="50" r="2" fill="#60a5fa" opacity="0.6"/>
+  <circle cx="150" cy="35" r="2" fill="#60a5fa" opacity="0.6"/>
+  <circle cx="170" cy="55" r="2" fill="#60a5fa" opacity="0.6"/>
+  
+  <!-- Warning sign -->
+  <polygon points="160,100 175,125 145,125" fill="#fbbf24" stroke="#f59e0b" stroke-width="2"/>
+  <text x="160" y="122" font-size="20" font-weight="bold" fill="#78350f" text-anchor="middle">!</text>
+</svg>

@@ -8,7 +8,7 @@ import { useAppMode, type AppMode } from "./ModeToggle";
 // Navigation items for Emergency Mode
 const emergencyNavItems = [
   { name: "Home", href: "/dashboard", icon: Home, color: "#53B175" },
-  { name: "Map", href: "/forecast/map", icon: Map, color: "#53B175" },
+  { name: "Map", href: "/emergency/map", icon: Map, color: "#ef4444" },
   { name: "SOS", href: "/sos", icon: AlertTriangle, color: "#c1121f" },
   { name: "Friends", href: "/friends", icon: Users, color: "#53B175" },
   { name: "Chat", href: "/chatgpt", icon: Bot, color: "#53B175" },
@@ -36,7 +36,7 @@ export function BottomBar({ iconSize = 24, activeColor = "#53B175", inactiveColo
   
   // Determine actual mode based on current pathname (override mode if needed)
   const isInForecastArea = pathname.startsWith('/forecast') || pathname === '/chat' || pathname === '/settings';
-  const isInEmergencyArea = pathname === '/dashboard' || pathname === '/sos' || pathname === '/route' || pathname === '/friends' || pathname === '/chatgpt' || pathname === '/alerts';
+  const isInEmergencyArea = pathname === '/dashboard' || pathname === '/sos' || pathname === '/route' || pathname === '/friends' || pathname === '/chatgpt' || pathname === '/alerts' || pathname.startsWith('/emergency');
   
   // Use pathname-based detection if mode from context doesn't match current area
   const actualMode: AppMode = isInForecastArea ? 'forecast' : isInEmergencyArea ? 'emergency' : mode;

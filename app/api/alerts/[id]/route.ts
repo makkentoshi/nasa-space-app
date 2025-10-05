@@ -38,13 +38,13 @@ export async function GET(
 
 function getAlertImage(type: string): string {
   const imageMap: Record<string, string> = {
-    'TSUNAMI': '/alerts/tsunami.jpg',
-    'EARTHQUAKE': '/alerts/earthquake.jpg',
-    'WILDFIRE': '/alerts/fire.jpg',
-    'HURRICANE': '/alerts/hurricane.jpg',
-    'FLOOD': '/alerts/flood.jpg',
-    'VOLCANO': '/alerts/volcano.jpg'
+    'TSUNAMI': '/alerts/tsunami.svg',
+    'EARTHQUAKE': '/alerts/earthquake.svg',
+    'WILDFIRE': '/alerts/fire.svg',
+    'HURRICANE': '/alerts/hurricane.svg',
+    'FLOOD': '/alerts/flood.svg',
+    'VOLCANO': '/alerts/volcano.svg'
   }
 
-  return imageMap[type] || '/icons/icon-192.svg'
+  return imageMap[type] || '/globe.svg'
 }
