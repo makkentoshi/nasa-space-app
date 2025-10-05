@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
@@ -29,11 +29,12 @@ interface Alert {
   image: string
 }
 
-export default function AlertTypePage({ params }: { params: { type: string } }) {
+export default function AlertTypePage({ params }: { params: Promise<{ type: string }> }) {
   const router = useRouter()
+  const resolvedParams = use(params)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
-  const alertType = decodeURIComponent(params.type)
+  const alertType = decodeURIComponent(resolvedParams.type)
 
   useEffect(() => {
     fetchAlerts()

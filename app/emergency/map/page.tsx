@@ -26,6 +26,34 @@ const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
   { ssr: false }
 )
+
+// Create custom marker icons using Lucide React icons and data URLs
+const createCustomIcon = (color: string, iconType: 'user' | 'family' | 'emergency') => {
+  if (typeof window === 'undefined') return undefined
+  
+  const L = require('leaflet')
+  
+  // Create SVG icons based on type
+  let svgIcon = ''
+  if (iconType === 'user') {
+    svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2 L12 12 L16 8" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`
+  } else if (iconType === 'family') {
+    svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21 C6 17 8 15 12 15 C16 15 18 17 18 21" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`
+  } else {
+    svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2"><path d="M12 2 L15 8 L22 9 L17 14 L18 21 L12 18 L6 21 L7 14 L2 9 L9 8 Z"/></svg>`
+  }
+  
+  const iconUrl = `data:image/svg+xml;base64,${btoa(svgIcon)}`
+  
+  return L.icon({
+    iconUrl: iconUrl,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  })
+}
+
+
 const TileLayer = dynamic(
   () => import('react-leaflet').then((mod) => mod.TileLayer),
   { ssr: false }
@@ -335,10 +363,18 @@ export default function EmergencyMapPage() {
                     center={[userLocation.lat, userLocation.lng]}
                     zoom={7}
                     style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={true}
+                    zoomControl={true}
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      maxZoom={19}
+                      minZoom={3}
+                      tileSize={256}
+                      keepBuffer={10}
+                      updateWhenZooming={false}
+                      updateWhenIdle={true}
                     />
 
                     {/* User location with notification radius */}
@@ -354,7 +390,10 @@ export default function EmergencyMapPage() {
                       }}
                     />
                     
-                    <Marker position={[userLocation.lat, userLocation.lng]}>
+                    <Marker 
+                      position={[userLocation.lat, userLocation.lng]}
+                      icon={createCustomIcon('#8b5cf6', 'user')}
+                    >
                       <Popup>
                         <div className="text-center">
                           <strong>Your Location</strong>
@@ -364,26 +403,31 @@ export default function EmergencyMapPage() {
                     </Marker>
 
                     {/* Family members */}
-                    {family.map((member) => (
-                      <Marker
-                        key={member.id}
-                        position={[member.location.lat, member.location.lng]}
-                      >
-                        <Popup>
-                          <div>
-                            <strong>{member.name}</strong>
-                            <p className="text-sm">{member.relation}</p>
-                            <p className="text-xs text-gray-600">{member.location.name}</p>
-                            <p className="text-xs">Status: <span className={`font-semibold ${
-                              member.status === 'safe' ? 'text-green-600' :
-                              member.status === 'at-risk' ? 'text-red-600' :
-                              'text-gray-600'
-                            }`}>{member.status}</span></p>
-                            <p className="text-xs">Last seen: {member.lastSeen}</p>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    ))}
+                    {family.map((member) => {
+                      const iconColor = member.status === 'safe' ? '#10b981' : 
+                                       member.status === 'at-risk' ? '#ef4444' : '#9ca3af'
+                      return (
+                        <Marker
+                          key={member.id}
+                          position={[member.location.lat, member.location.lng]}
+                          icon={createCustomIcon(iconColor, 'family')}
+                        >
+                          <Popup>
+                            <div>
+                              <strong>{member.name}</strong>
+                              <p className="text-sm">{member.relation}</p>
+                              <p className="text-xs text-gray-600">{member.location.name}</p>
+                              <p className="text-xs">Status: <span className={`font-semibold ${
+                                member.status === 'safe' ? 'text-green-600' :
+                                member.status === 'at-risk' ? 'text-red-600' :
+                                'text-gray-600'
+                              }`}>{member.status}</span></p>
+                              <p className="text-xs">Last seen: {member.lastSeen}</p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      )
+                    })}
 
                     {/* Emergency zones */}
                     {emergencyZones.map((zone) => (

@@ -177,7 +177,48 @@ async function generateDailyBriefing(
 }
 
 async function fetchWeatherData(lat: number, lng: number) {
-  // Mock weather data - in production, fetch from NASA POWER API or OpenWeather
+  try {
+    // Fetch real weather data from our weather API
+    const weatherResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/weather?lat=${lat}&lng=${lng}`,
+      { next: { revalidate: 300 } } // Cache for 5 minutes
+    )
+    
+    if (weatherResponse.ok) {
+      const weatherData = await weatherResponse.json()
+      const temp = weatherData.current.temperature
+      const condition = weatherData.current.condition
+      
+      // Map API condition to display text
+      const conditionMap: Record<string, string> = {
+        'sunny': 'Sunny',
+        'partly_cloudy': 'Partly Cloudy',
+        'cloudy': 'Cloudy',
+        'rainy': 'Rainy',
+        'stormy': 'Stormy'
+      }
+      
+      const displayCondition = conditionMap[condition] || 'Clear'
+      
+      return {
+        conditions: displayCondition,
+        summary: `${displayCondition} skies with ${temp}°C`,
+        high_temp: temp + 3, // Approximate high
+        low_temp: temp - 5, // Approximate low
+        precipitation_chance: weatherData.current.precipitation,
+        wind_speed: weatherData.current.windSpeed,
+        humidity: weatherData.current.humidity,
+        uv_index: Math.floor(Math.random() * 10) + 1, // UV not in API yet
+        sunrise: '06:45 AM',
+        sunset: '07:30 PM',
+        hourly: generateMockHourlyData() // Keep hourly for now
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch real weather, using fallback:', error)
+  }
+  
+  // Fallback to mock if API fails
   const conditions = ['Clear', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Sunny']
   const randomCondition = conditions[Math.floor(Math.random() * conditions.length)]
   

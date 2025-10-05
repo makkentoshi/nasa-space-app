@@ -18,6 +18,7 @@ import { Waves, Flame, Earth, Wind } from "lucide-react";
 import { useAppStore } from "@/lib/store/useAppStore";
 import Link from "next/link";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
+import { SafetyGuidesCard } from "@/components/SafetyGuidesCard";
 
 interface DashboardAlert {
   id: string;
@@ -290,6 +291,11 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        {/* Safety Guides Library */}
+        <div className="mb-6">
+          <SafetyGuidesCard />
+        </div>
+
         {/* Instructions (PDF) */}
         <div className="rounded-2xl bg-white shadow-sm p-4 mb-6">
           <h2 className="text-lg font-bold mb-2">Emergency Instructions</h2>
