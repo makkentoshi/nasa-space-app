@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+// Lazy initialize OpenAI to avoid build-time errors
+let openai: OpenAI | null = null
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || ''
+    })
+  }
+  return openai
+}
 
 interface EmergencyNotificationRequest {
   emergencyType: 'earthquake' | 'tsunami' | 'fire' | 'flood' | 'medical' | 'accident' | 'violence' | 'other'
@@ -214,7 +221,7 @@ Format your response as JSON with these exact keys:
 `
 
     // Call OpenAI GPT-4
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },

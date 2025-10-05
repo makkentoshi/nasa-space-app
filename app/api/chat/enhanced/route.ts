@@ -13,9 +13,16 @@ import { detectIntent, formatIntentForAI, type DetectedIntent } from '@/lib/chat
  * - Rich metadata in responses
  */
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
+// Lazy initialize OpenAI to avoid build-time errors
+let openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    });
+  }
+  return openai;
+}
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -186,7 +193,7 @@ export async function POST(request: NextRequest) {
     
     // Stream response if requested
     if (body.stream) {
-      const stream = await openai.chat.completions.create({
+      const stream = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: messages as any,
         temperature: 0.7,
@@ -235,7 +242,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Non-streaming response
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: messages as any,
       temperature: 0.7,
